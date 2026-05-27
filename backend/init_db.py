@@ -92,15 +92,7 @@ def init_db():
     (5,'floorIncharge','T');
 
     insert into users (user_id,user_name,contact_no,role_id,email_id,password,status) values 
-    (1,'dwijesh','8500784889',1,'dwijesh@gmail.comm','123456','T'),
-    (2,'rushika','8686867888',2,'rushikasriya.pendurthi@gmail.com','123456','T'),
-    (3,'bhaskar','9876543212',3,'bhaskar@gmail.com','123456','T'),
-    (5,'renu','8765212309',4,'renu@gmail.com','123456','T'),
-    (6,'padma','8765212309',5,'padma@gmail.com','123456','T'),
-    (7,'rama','8765212309',4,'rama@gmail.com','123456','T'),
-    (8,'sudha','8765212309',5,'sudha@gmail.com','123456','T'),
-    (9,'anuradha','8765212309',5,'anuradha@gmail.com','123456','T'),
-    (10,'mallika','8765212309',5,'mallika@gmail.com','123456','T');
+    (2,'rushika','8686867888',1,'rushikasriya.pendurthi@gmail.com','123456','T');
     """)
 
     conn.commit()
