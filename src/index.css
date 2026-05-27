@@ -47,20 +47,21 @@ body {
 /* Layout */
 .app-container {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .sidebar {
   width: var(--sidebar-width);
-  min-height: 100vh;
-  position: sticky;
-  top: 0;
+  height: 100vh;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   padding: 24px 16px;
   background-color: var(--sidebar-bg);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   z-index: 40;
+  overflow-y: auto;
 }
 
 .sidebar-logo {
@@ -72,6 +73,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 0 8px;
+  flex-shrink: 0;
 }
 
 .sidebar-logo svg {
@@ -82,6 +84,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1;
 }
 
 .nav-item {
@@ -109,10 +112,13 @@ body {
 
 .main-content {
   flex: 1;
+  min-width: 0; /* Critical for preventing flex blowout */
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   overflow-x: hidden;
+  background-color: var(--bg-color);
 }
 
 .header {
@@ -360,24 +366,43 @@ tr:hover td {
   align-items: center;
   gap: 16px;
   padding: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px -10px rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.3);
 }
 
 .stat-icon {
   width: 50px;
   height: 50px;
-  border-radius: 8px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  transition: transform 0.3s ease;
+}
+.stat-card:hover .stat-icon {
+  transform: scale(1.1) rotate(5deg);
 }
 
-/* Specific Stat Icon Colors based on image */
-.stat-card:nth-child(1) .stat-icon { background: #8b5cf6; } /* Purple for Blocks */
-.stat-card:nth-child(2) .stat-icon { background: #3b82f6; } /* Blue for Rooms */
-.stat-card:nth-child(3) .stat-icon { background: #10b981; } /* Green for Occupied */
-.stat-card:nth-child(4) .stat-icon { background: #f59e0b; } /* Orange for Vacant */
-.stat-card:nth-child(5) .stat-icon { background: #ef4444; } /* Red for Fees/Users */
+/* Specific Stat Icon Colors with Premium Gradients */
+.stat-card:nth-child(1) .stat-icon { background: linear-gradient(135deg, #a78bfa, #8b5cf6); box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3); } 
+.stat-card:nth-child(2) .stat-icon { background: linear-gradient(135deg, #60a5fa, #3b82f6); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); } 
+.stat-card:nth-child(3) .stat-icon { background: linear-gradient(135deg, #34d399, #10b981); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); } 
+.stat-card:nth-child(4) .stat-icon { background: linear-gradient(135deg, #fbbf24, #f59e0b); box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3); } 
+.stat-card:nth-child(5) .stat-icon { background: linear-gradient(135deg, #f87171, #ef4444); box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); } 
+
+.bar-chart-bar {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: bottom;
+}
+.bar-chart-bar:hover {
+  filter: brightness(1.2);
+  transform: scaleY(1.1);
+}
 
 .stat-content h3 {
   font-size: 13px;
@@ -408,3 +433,52 @@ tr:hover td {
   background: var(--danger-bg);
   color: var(--danger-color);
 }
+
+/* Toast */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toast {
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideInRight 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast.success {
+  background: var(--success-color);
+}
+
+.toast.error {
+  background: var(--danger-color);
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@media (min-width: 900px) {
+  .span-2 {
+    grid-column: span 2;
+  }
+}
+

@@ -26,7 +26,8 @@ export const Login = ({ onLogin }) => {
       });
 
       if (response.ok) {
-        onLogin();
+        const data = await response.json();
+        onLogin(data.user);
       } else {
         const errorData = await response.json();
         setError(errorData.detail || 'Invalid email or password.');

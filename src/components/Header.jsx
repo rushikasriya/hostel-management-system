@@ -20,7 +20,7 @@ export const Header = () => {
         </button>
         <button className="btn-icon" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <UserCircle size={24} />
-          <span style={{ fontSize: '14px', fontWeight: 500 }}>Admin</span>
+          <span style={{ fontSize: '14px', fontWeight: 500 }}>{localStorage.getItem('userName') || 'Admin'}</span>
         </button>
         <button 
           className="btn-icon" 

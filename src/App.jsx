@@ -11,13 +11,26 @@ import { ExternalLink } from 'lucide-react';
 import { useAppContext } from './context/AppContext';
 
 function App() {
-  const { roles, users, hostels, blocks, floors, rooms, beds } = useAppContext();
+  const { roles, users, hostels, blocks, floors, rooms, beds, addToast } = useAppContext();
   const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('auth') === 'true');
 
+  React.useEffect(() => {
+    if (isAuthenticated && !localStorage.getItem('userName')) {
+      // Force logout for old sessions without a saved userName
+      localStorage.removeItem('auth');
+      setIsAuthenticated(false);
+      if (addToast) addToast('Session updated. Please log in again.', 'success');
+    }
+  }, [isAuthenticated, addToast]);
+
   if (!isAuthenticated) {
-    return <Login onLogin={() => {
+    return <Login onLogin={(user) => {
       localStorage.setItem('auth', 'true');
+      if (user && user.user_name) {
+        localStorage.setItem('userName', user.user_name);
+      }
       setIsAuthenticated(true);
+      if (addToast) addToast(`Successfully logged in${user ? ` as ${user.user_name}` : ''}!`, 'success');
     }} />;
   }
 
@@ -59,6 +72,7 @@ function App() {
 
   const hostelColumns = [
     { key: 'hostel_name', label: 'Hostel Name' },
+    { key: 'hostel_code', label: 'Hostel Code', hideInForm: true },
     { key: 'location_id', label: 'Location ID', type: 'number' },
     { 
       key: 'status', 

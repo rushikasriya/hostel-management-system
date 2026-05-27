@@ -23,6 +23,15 @@ export const AppProvider = ({ children }) => {
   const [beds, setBeds] = useState(() => loadInitialData('beds'));
   const [tenants, setTenants] = useState(() => loadInitialData('tenants'));
   const [roles, setRoles] = useState([]);
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = (message, type = 'success') => {
+    const id = generateId();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3000);
+  };
 
   // Fetch users from API
   useEffect(() => {
@@ -124,8 +133,9 @@ export const AppProvider = ({ children }) => {
         await handleApiAction('/addTenant', 'POST', record);
         await reloadData('/getTenants', setTenants, 'tenant_id');
       }
+      addToast(`Item added successfully!`);
     } catch (err) {
-      alert(`Failed to add ${entityType}: ${err.message}`);
+      addToast(`Failed to add: ${err.message}`, 'error');
     }
   };
 
@@ -165,8 +175,9 @@ export const AppProvider = ({ children }) => {
         await handleApiAction(`/updateTenantDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
         await reloadData('/getTenants', setTenants, 'tenant_id');
       }
+      addToast(`Item updated successfully!`);
     } catch (err) {
-      alert(`Failed to update ${entityType}: ${err.message}`);
+      addToast(`Failed to update: ${err.message}`, 'error');
     }
   };
 
@@ -194,17 +205,25 @@ export const AppProvider = ({ children }) => {
         await handleApiAction(`/deleteTenant/${id}`, 'DELETE');
         await reloadData('/getTenants', setTenants, 'tenant_id');
       }
+      addToast(`Item deleted successfully!`);
     } catch (err) {
-      alert(`Failed to delete ${entityType}: ${err.message}`);
+      addToast(`Failed to delete: ${err.message}`, 'error');
     }
   };
 
   return (
     <AppContext.Provider value={{
       users, hostels, blocks, floors, rooms, beds, tenants, roles,
-      addRecord, updateRecord, softDeleteRecord
+      addRecord, updateRecord, softDeleteRecord, addToast
     }}>
       {children}
+      <div className="toast-container">
+        {toasts.map(t => (
+          <div key={t.id} className={`toast ${t.type}`}>
+            {t.message}
+          </div>
+        ))}
+      </div>
     </AppContext.Provider>
   );
 };

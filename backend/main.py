@@ -30,6 +30,7 @@ class Login(BaseModel):
 
 class Hostel(BaseModel):
     hostel_name: str | None = None
+    hostel_code: str | None = None
     location_id: int | None = None
     status: str | None = None
 
@@ -165,8 +166,13 @@ def get_roles():
 def create_hostel(hostel: Hostel):
     db = localhost()
     cursor = db.cursor()
-    query = "INSERT INTO hostels (hostel_name, location_id, status) VALUES (?, ?, ?)"
-    values = (hostel.hostel_name, hostel.location_id, 'T')
+    
+    h_code = hostel.hostel_code
+    if not h_code and hostel.hostel_name:
+        h_code = "".join([word[0].upper() for word in hostel.hostel_name.split() if word])
+        
+    query = "INSERT INTO hostels (hostel_name, hostel_code, location_id, status) VALUES (?, ?, ?, ?)"
+    values = (hostel.hostel_name, h_code, hostel.location_id, 'T')
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -198,8 +204,13 @@ def get_hostel(id: int):
 def update_hostel(id: int, hostel: Hostel):
     db = localhost()
     cursor = db.cursor()
-    query = "UPDATE hostels SET hostel_name = ?, location_id = ?, status = ? WHERE id = ?"
-    values = (hostel.hostel_name, hostel.location_id, hostel.status, id)
+    
+    h_code = hostel.hostel_code
+    if not h_code and hostel.hostel_name:
+        h_code = "".join([word[0].upper() for word in hostel.hostel_name.split() if word])
+        
+    query = "UPDATE hostels SET hostel_name = ?, hostel_code = ?, location_id = ?, status = ? WHERE id = ?"
+    values = (hostel.hostel_name, h_code, hostel.location_id, hostel.status, id)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -290,6 +301,15 @@ def get_full_hostel_details(hostelId: int):
 def create_block(block: Block):
     db = localhost()
     cursor = db.cursor()
+    
+    if block.hostel_id:
+        cursor.execute("SELECT hostel_code FROM hostels WHERE id = ?", (block.hostel_id,))
+        h_row = cursor.fetchone()
+        if h_row and h_row.get('hostel_code'):
+            prefix = h_row['hostel_code'] + '-'
+            if not block.block_name.startswith(prefix):
+                block.block_name = f"{h_row['hostel_code']}-{block.block_name}"
+
     query = "INSERT INTO blocks (hostel_id, block_name, manager_id, block_incharge_id) VALUES (?, ?, ?, ?)"
     values = (block.hostel_id, block.block_name, block.manager_id, block.block_incharge_id)
     cursor.execute(query, values)
