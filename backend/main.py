@@ -599,6 +599,33 @@ def delete_tenant(id: int):
     return {"message": "Tenant deleted successfully"}
 
 
+import os
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+# --- SERVE FRONTEND IN PRODUCTION ---
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DIST_DIR = os.path.join(BASE_DIR, "dist")
+ASSETS_DIR = os.path.join(DIST_DIR, "assets")
+
+if os.path.exists(ASSETS_DIR):
+    app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
+
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    # Try to serve requested static file (e.g. vite.svg)
+    file_path = os.path.join(DIST_DIR, full_path)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    
+    # Otherwise fallback to index.html for React Router
+    index_path = os.path.join(DIST_DIR, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+        
+    return {"message": "API is running. Frontend not built yet!"}
+
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=3000)
+    port = int(os.environ.get("PORT", 3000))
+    uvicorn.run("main:app", host='0.0.0.0', port=port, reload=False)
