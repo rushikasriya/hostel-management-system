@@ -99,14 +99,14 @@ function App() {
       key: 'manager_id', 
       label: 'Manager', 
       type: 'select',
-      options: (users || []).map(u => ({ label: u.user_name, value: u.user_id })),
+      options: (users || []).filter(u => u.role_name === 'manager').map(u => ({ label: u.user_name, value: u.user_id })),
       render: (val) => getUserName(val) 
     },
     { 
       key: 'block_incharge_id', 
       label: 'Incharge', 
       type: 'select',
-      options: (users || []).map(u => ({ label: u.user_name, value: u.user_id })),
+      options: (users || []).filter(u => u.role_name === 'blockIncharge').map(u => ({ label: u.user_name, value: u.user_id })),
       render: (val) => getUserName(val) 
     }
   ];
@@ -124,7 +124,7 @@ function App() {
       key: 'incharge_id', 
       label: 'Incharge', 
       type: 'select',
-      options: (users || []).map(u => ({ label: u.user_name, value: u.user_id })),
+      options: (users || []).filter(u => u.role_name === 'floorIncharge').map(u => ({ label: u.user_name, value: u.user_id })),
       render: (val) => getUserName(val) 
     }
   ];
@@ -172,7 +172,7 @@ function App() {
       key: 'bed_id', 
       label: 'Bed', 
       type: 'select',
-      options: (beds || []).filter(b => b.status === 'Vacant').map(b => ({ label: b.bed_no, value: b.id })),
+      options: (formData) => (beds || []).filter(b => b.status === 'Vacant' || (formData && b.id === formData.bed_id)).map(b => ({ label: `${getRoomName(b.room_id)} - ${b.bed_no}${b.status !== 'Vacant' ? ' (Current)' : ''}`, value: b.id })),
       render: (val) => getBedName(val) 
     },
     { key: 'fee', label: 'Fee', type: 'number' },

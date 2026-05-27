@@ -47,27 +47,27 @@ export const AppProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    fetch('/getBlocks').then(res => res.json()).then(data => { if(Array.isArray(data)) setBlocks(data.map(h => ({ ...h, id: h.id || h.block_id }))) }).catch(err => console.error("Failed:", err));
+    fetch('/getBlocks').then(res => res.json()).then(data => { if (Array.isArray(data)) setBlocks(data.map(h => ({ ...h, id: h.id || h.block_id }))) }).catch(err => console.error("Failed:", err));
   }, []);
 
   useEffect(() => {
-    fetch('/getFloors').then(res => res.json()).then(data => { if(Array.isArray(data)) setFloors(data.map(h => ({ ...h, id: h.id || h.floor_id }))) }).catch(err => console.error("Failed:", err));
+    fetch('/getFloors').then(res => res.json()).then(data => { if (Array.isArray(data)) setFloors(data.map(h => ({ ...h, id: h.id || h.floor_id }))) }).catch(err => console.error("Failed:", err));
   }, []);
 
   useEffect(() => {
-    fetch('/getRooms').then(res => res.json()).then(data => { if(Array.isArray(data)) setRooms(data.map(h => ({ ...h, id: h.id || h.room_id }))) }).catch(err => console.error("Failed:", err));
+    fetch('/getRooms').then(res => res.json()).then(data => { if (Array.isArray(data)) setRooms(data.map(h => ({ ...h, id: h.id || h.room_id }))) }).catch(err => console.error("Failed:", err));
   }, []);
 
   useEffect(() => {
-    fetch('/getBeds').then(res => res.json()).then(data => { if(Array.isArray(data)) setBeds(data.map(h => ({ ...h, id: h.id || h.bed_id }))) }).catch(err => console.error("Failed:", err));
+    fetch('/getBeds').then(res => res.json()).then(data => { if (Array.isArray(data)) setBeds(data.map(h => ({ ...h, id: h.id || h.bed_id }))) }).catch(err => console.error("Failed:", err));
   }, []);
 
   useEffect(() => {
-    fetch('/getTenants').then(res => res.json()).then(data => { if(Array.isArray(data)) setTenants(data.map(h => ({ ...h, id: h.id || h.tenant_id }))) }).catch(err => console.error("Failed:", err));
+    fetch('/getTenants').then(res => res.json()).then(data => { if (Array.isArray(data)) setTenants(data.map(h => ({ ...h, id: h.id || h.tenant_id }))) }).catch(err => console.error("Failed:", err));
   }, []);
 
   useEffect(() => {
-    fetch('/getRoles').then(res => res.json()).then(data => { if(Array.isArray(data)) setRoles(data) }).catch(err => console.error("Failed:", err));
+    fetch('/getRoles').then(res => res.json()).then(data => { if (Array.isArray(data)) setRoles(data) }).catch(err => console.error("Failed:", err));
   }, []);
 
   const handleApiAction = async (url, method, body = null) => {
@@ -91,35 +91,36 @@ export const AppProvider = ({ children }) => {
   const addRecord = async (entityType, record) => {
     try {
       if (entityType === 'users') {
-        if(record.role_id) record.role_id = parseInt(record.role_id, 10);
-        await handleApiAction('/usersList', 'POST', record);
+        if (record.role_id) record.role_id = parseInt(record.role_id, 10);
+        else record.role_id = null;
+        await handleApiAction('/addUser', 'POST', record);
         await reloadData('/getUsers', setUsers, 'user_id');
       } else if (entityType === 'hostels') {
-        if(record.location_id) record.location_id = parseInt(record.location_id, 10);
+        if (record.location_id) record.location_id = parseInt(record.location_id, 10);
         await handleApiAction('/addHostel', 'POST', record);
         await reloadData('/getHostels', setHostels, 'hostel_id');
       } else if (entityType === 'blocks') {
-        if(record.hostel_id) record.hostel_id = parseInt(record.hostel_id, 10);
-        if(record.manager_id) record.manager_id = parseInt(record.manager_id, 10);
-        if(record.block_incharge_id) record.block_incharge_id = parseInt(record.block_incharge_id, 10);
+        if (record.hostel_id) record.hostel_id = parseInt(record.hostel_id, 10);
+        if (record.manager_id) record.manager_id = parseInt(record.manager_id, 10);
+        if (record.block_incharge_id) record.block_incharge_id = parseInt(record.block_incharge_id, 10);
         await handleApiAction('/addBlocks', 'POST', record);
         await reloadData('/getBlocks', setBlocks, 'block_id');
       } else if (entityType === 'floors') {
-        if(record.block_id) record.block_id = parseInt(record.block_id, 10);
-        if(record.incharge_id) record.incharge_id = parseInt(record.incharge_id, 10);
+        if (record.block_id) record.block_id = parseInt(record.block_id, 10);
+        if (record.incharge_id) record.incharge_id = parseInt(record.incharge_id, 10);
         await handleApiAction('/addFloor', 'POST', record);
         await reloadData('/getFloors', setFloors, 'floor_id');
       } else if (entityType === 'rooms') {
-        if(record.floor_id) record.floor_id = parseInt(record.floor_id, 10);
+        if (record.floor_id) record.floor_id = parseInt(record.floor_id, 10);
         await handleApiAction('/addRoom', 'POST', record);
         await reloadData('/getRooms', setRooms, 'room_id');
       } else if (entityType === 'beds') {
-        if(record.room_id) record.room_id = parseInt(record.room_id, 10);
+        if (record.room_id) record.room_id = parseInt(record.room_id, 10);
         await handleApiAction('/addBed', 'POST', record);
         await reloadData('/getBeds', setBeds, 'bed_id');
       } else if (entityType === 'tenants') {
-        if(record.bed_id) record.bed_id = parseInt(record.bed_id, 10);
-        if(record.fee) record.fee = parseFloat(record.fee);
+        if (record.bed_id) record.bed_id = parseInt(record.bed_id, 10);
+        if (record.fee) record.fee = parseFloat(record.fee);
         await handleApiAction('/addTenant', 'POST', record);
         await reloadData('/getTenants', setTenants, 'tenant_id');
       }
@@ -131,35 +132,36 @@ export const AppProvider = ({ children }) => {
   const updateRecord = async (entityType, updatedRecord) => {
     try {
       if (entityType === 'users') {
-        if(updatedRecord.role_id) updatedRecord.role_id = parseInt(updatedRecord.role_id, 10);
+        if (updatedRecord.role_id) updatedRecord.role_id = parseInt(updatedRecord.role_id, 10);
+        else updatedRecord.role_id = null;
         await handleApiAction(`/updateUser/${updatedRecord.id}`, 'PUT', updatedRecord);
         await reloadData('/getUsers', setUsers, 'user_id');
       } else if (entityType === 'hostels') {
-        if(updatedRecord.location_id) updatedRecord.location_id = parseInt(updatedRecord.location_id, 10);
+        if (updatedRecord.location_id) updatedRecord.location_id = parseInt(updatedRecord.location_id, 10);
         await handleApiAction(`/updateHostelDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
         await reloadData('/getHostels', setHostels, 'hostel_id');
       } else if (entityType === 'blocks') {
-        if(updatedRecord.hostel_id) updatedRecord.hostel_id = parseInt(updatedRecord.hostel_id, 10);
-        if(updatedRecord.manager_id) updatedRecord.manager_id = parseInt(updatedRecord.manager_id, 10);
-        if(updatedRecord.block_incharge_id) updatedRecord.block_incharge_id = parseInt(updatedRecord.block_incharge_id, 10);
+        if (updatedRecord.hostel_id) updatedRecord.hostel_id = parseInt(updatedRecord.hostel_id, 10);
+        if (updatedRecord.manager_id) updatedRecord.manager_id = parseInt(updatedRecord.manager_id, 10);
+        if (updatedRecord.block_incharge_id) updatedRecord.block_incharge_id = parseInt(updatedRecord.block_incharge_id, 10);
         await handleApiAction(`/updateBlockDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
         await reloadData('/getBlocks', setBlocks, 'block_id');
       } else if (entityType === 'floors') {
-        if(updatedRecord.block_id) updatedRecord.block_id = parseInt(updatedRecord.block_id, 10);
-        if(updatedRecord.incharge_id) updatedRecord.incharge_id = parseInt(updatedRecord.incharge_id, 10);
+        if (updatedRecord.block_id) updatedRecord.block_id = parseInt(updatedRecord.block_id, 10);
+        if (updatedRecord.incharge_id) updatedRecord.incharge_id = parseInt(updatedRecord.incharge_id, 10);
         await handleApiAction(`/updateFloorDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
         await reloadData('/getFloors', setFloors, 'floor_id');
       } else if (entityType === 'rooms') {
-        if(updatedRecord.floor_id) updatedRecord.floor_id = parseInt(updatedRecord.floor_id, 10);
+        if (updatedRecord.floor_id) updatedRecord.floor_id = parseInt(updatedRecord.floor_id, 10);
         await handleApiAction(`/updateRoomDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
         await reloadData('/getRooms', setRooms, 'room_id');
       } else if (entityType === 'beds') {
-        if(updatedRecord.room_id) updatedRecord.room_id = parseInt(updatedRecord.room_id, 10);
+        if (updatedRecord.room_id) updatedRecord.room_id = parseInt(updatedRecord.room_id, 10);
         await handleApiAction(`/updateBedDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
         await reloadData('/getBeds', setBeds, 'bed_id');
       } else if (entityType === 'tenants') {
-        if(updatedRecord.bed_id) updatedRecord.bed_id = parseInt(updatedRecord.bed_id, 10);
-        if(updatedRecord.fee) updatedRecord.fee = parseFloat(updatedRecord.fee);
+        if (updatedRecord.bed_id) updatedRecord.bed_id = parseInt(updatedRecord.bed_id, 10);
+        if (updatedRecord.fee) updatedRecord.fee = parseFloat(updatedRecord.fee);
         await handleApiAction(`/updateTenantDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
         await reloadData('/getTenants', setTenants, 'tenant_id');
       }

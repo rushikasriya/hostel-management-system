@@ -126,7 +126,7 @@ export const CrudPage = ({ entityType, title, columns }) => {
                         required={col.required !== false}
                       >
                         <option value="">Select {col.label}</option>
-                        {col.options?.map(opt => (
+                        {(typeof col.options === 'function' ? col.options(formData) : col.options)?.map(opt => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                       </select>

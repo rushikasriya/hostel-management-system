@@ -21,8 +21,8 @@ class User(BaseModel):
     contact_no: str | None = None
     role_id: int | None = None
     email_id: EmailStr
-    password: str
-    status: str
+    password: str | None = "123456"
+    status: str | None = "T"
 
 class Login(BaseModel):
     email_id: EmailStr
@@ -88,11 +88,12 @@ def login_user(login: Login):
 def create_user(user: User):
     db = localhost()
     cursor = db.cursor()
+    default_password = 123456
     query = """
     INSERT INTO users (user_name, contact_no, role_id, email_id, password, status)
     VALUES (?, ?, ?, ?, ?, ?)
     """
-    values = (user.user_name, user.contact_no, user.role_id, user.email_id, user.password, 'T')
+    values = (user.user_name, user.contact_no, user.role_id, user.email_id, default_password, user.status)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -126,8 +127,8 @@ def get_user(user_id: int):
 def update_user(user_id: int, user: User):
     db = localhost()
     cursor = db.cursor()
-    query = """UPDATE users SET user_name = ?, contact_no = ?, role_id = ?, email_id = ?, password = ?, status = ? WHERE user_id = ?"""
-    values = (user.user_name, user.contact_no, user.role_id, user.email_id, user.password, user.status, user_id)
+    query = """UPDATE users SET user_name = ?, contact_no = ?, role_id = ?, email_id = ?, status = ? WHERE user_id = ?"""
+    values = (user.user_name, user.contact_no, user.role_id, user.email_id, user.status, user_id)
     cursor.execute(query, values)
     db.commit()
     db.close()

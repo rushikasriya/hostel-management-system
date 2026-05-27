@@ -11,7 +11,7 @@ export default defineConfig({
         changeOrigin: true,
       },
       '/login': { target: 'http://127.0.0.1:3000', changeOrigin: true },
-      '/addUsers': { target: 'http://127.0.0.1:3000', changeOrigin: true },
+      '/addUser': { target: 'http://127.0.0.1:3000', changeOrigin: true },
       '/getUsers': { target: 'http://127.0.0.1:3000', changeOrigin: true },
       '/getRoles': { target: 'http://127.0.0.1:3000', changeOrigin: true },
       '/usersList': { target: 'http://127.0.0.1:3000', changeOrigin: true },
