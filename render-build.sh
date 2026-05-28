@@ -12,8 +12,8 @@ npm run build
 # Install backend dependencies
 echo "Installing Python dependencies..."
 cd backend
-pip install -r requirements.txt
+pip install -r requirements.txt --break-system-packages
 
-# Initialize the SQLite database
-echo "Initializing SQLite database..."
+# Initialize the PostgreSQL database
+echo "Initializing PostgreSQL database..."
 python init_db.py
