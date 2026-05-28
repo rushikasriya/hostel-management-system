@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Plus, Search, BedDouble, CheckCircle2, XCircle, X, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, BedDouble, CheckCircle2, XCircle, X, Edit, Trash2, UserPlus } from 'lucide-react';
 import { useSearchParams, Link } from 'react-router-dom';
 
 export const Beds = () => {
@@ -163,7 +163,16 @@ export const Beds = () => {
                         </div>
                       </div>
                     ) : (
-                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Available for booking</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span>Available for booking</span>
+                        <Link 
+                          to={`/tenants?action=add&bed_id=${bed.id}`}
+                          className="btn btn-primary" 
+                          style={{ padding: '4px 12px', fontSize: '12px', borderRadius: '4px', height: 'auto', display: 'inline-flex' }}
+                        >
+                          <UserPlus size={14} style={{ marginRight: '6px' }} /> Add Tenant
+                        </Link>
+                      </div>
                     )}
                   </div>
                 </div>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 
@@ -12,6 +13,27 @@ export const CrudPage = ({ entityType, title, columns }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({});
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'add') {
+      const initialData = {};
+      columns.forEach(c => initialData[c.key] = c.defaultValue !== undefined ? c.defaultValue : '');
+      
+      searchParams.forEach((val, key) => {
+        if (key !== 'action') {
+          initialData[key] = !isNaN(val) && val.trim() !== '' ? Number(val) : val;
+        }
+      });
+      
+      setFormData(initialData);
+      setIsModalOpen(true);
+      
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('action');
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, columns]);
 
   const activeData = data.filter(item => !item.isDeleted);
 

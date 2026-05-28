@@ -240,7 +240,16 @@ export const HostelDetails = () => {
                                         {bed.status}
                                       </span>
                                     </td>
-                                    <td>{tenant ? tenant.tenant_name : '-'}</td>
+                                    <td>
+                                      {tenant ? tenant.tenant_name : (
+                                        <Link 
+                                          to={`/tenants?action=add&bed_id=${bed.id}`}
+                                          style={{ color: 'var(--primary-color)', fontSize: '13px', textDecoration: 'none', fontWeight: 600 }}
+                                        >
+                                          + Add Tenant
+                                        </Link>
+                                      )}
+                                    </td>
                                     <td>{tenant ? tenant.phone : '-'}</td>
                                   </tr>
                                 );
