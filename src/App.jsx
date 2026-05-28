@@ -5,7 +5,14 @@ import { Header } from './components/Header';
 import { Dashboard } from './pages/Dashboard';
 import { CrudPage } from './components/CrudPage';
 import { HostelDetails } from './pages/HostelDetails';
+import { Hostels } from './pages/Hostels';
+import { Blocks } from './pages/Blocks';
+import { Floors } from './pages/Floors';
+import { Rooms } from './pages/Rooms';
+import { Beds } from './pages/Beds';
 import { Login } from './pages/Login';
+import { ComingSoon } from './pages/ComingSoon';
+import { Settings } from './pages/Settings';
 import { ExternalLink } from 'lucide-react';
 
 import { useAppContext } from './context/AppContext';
@@ -15,8 +22,8 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('auth') === 'true');
 
   React.useEffect(() => {
-    if (isAuthenticated && !localStorage.getItem('userName')) {
-      // Force logout for old sessions without a saved userName
+    if (isAuthenticated && (!localStorage.getItem('userName') || !localStorage.getItem('userId'))) {
+      // Force logout for old sessions without a saved userName or userId
       localStorage.removeItem('auth');
       setIsAuthenticated(false);
       if (addToast) addToast('Session updated. Please log in again.', 'success');
@@ -28,6 +35,7 @@ function App() {
       localStorage.setItem('auth', 'true');
       if (user && user.user_name) {
         localStorage.setItem('userName', user.user_name);
+        localStorage.setItem('userId', user.user_id || user.id);
       }
       setIsAuthenticated(true);
       if (addToast) addToast(`Successfully logged in${user ? ` as ${user.user_name}` : ''}!`, 'success');
@@ -49,6 +57,7 @@ function App() {
     { key: 'user_name', label: 'User Name' },
     { key: 'email_id', label: 'Email', type: 'email' },
     { key: 'contact_no', label: 'Contact No' },
+    { key: 'address', label: 'Address' },
     { key: 'role_name', label: 'Role', hideInForm: true },
     { 
       key: 'role_id', 
@@ -61,11 +70,24 @@ function App() {
       key: 'status', 
       label: 'Status', 
       type: 'select', 
+      defaultValue: 'T',
       options: [{label: 'Active', value: 'T'}, {label: 'Inactive', value: 'F'}],
       render: (val) => (
         <span className={`badge ${val === 'T' ? 'badge-active' : 'badge-inactive'}`}>
           {val === 'T' ? 'Active' : 'Inactive'}
         </span>
+      )
+    },
+    { 
+      key: 'photo_url', 
+      label: 'Photo', 
+      type: 'file', 
+      render: (val, item) => (
+        <img 
+          src={val || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.user_name || 'User')}&background=random`} 
+          alt="User" 
+          style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--surface-border)' }} 
+        />
       )
     }
   ];
@@ -191,7 +213,19 @@ function App() {
       render: (val) => getBedName(val) 
     },
     { key: 'fee', label: 'Fee', type: 'number' },
-    { key: 'joining_date', label: 'Joining Date', type: 'date' }
+    { key: 'joining_date', label: 'Joining Date', type: 'date' },
+    { 
+      key: 'photo_url', 
+      label: 'Photo', 
+      type: 'file', 
+      render: (val, item) => (
+        <img 
+          src={val || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.tenant_name || 'Tenant')}&background=random`} 
+          alt="Tenant" 
+          style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--surface-border)' }} 
+        />
+      )
+    }
   ];
 
   return (
@@ -203,12 +237,15 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/hostel-details/:id" element={<HostelDetails />} />
           <Route path="/users" element={<CrudPage entityType="users" title="Users" columns={userColumns} />} />
-          <Route path="/hostels" element={<CrudPage entityType="hostels" title="Hostels" columns={hostelColumns} />} />
-          <Route path="/blocks" element={<CrudPage entityType="blocks" title="Blocks" columns={blockColumns} />} />
-          <Route path="/floors" element={<CrudPage entityType="floors" title="Floors" columns={floorColumns} />} />
-          <Route path="/rooms" element={<CrudPage entityType="rooms" title="Rooms" columns={roomColumns} />} />
-          <Route path="/beds" element={<CrudPage entityType="beds" title="Beds" columns={bedColumns} />} />
+          <Route path="/hostels" element={<Hostels />} />
+          <Route path="/blocks" element={<Blocks />} />
+          <Route path="/floors" element={<Floors />} />
+          <Route path="/rooms" element={<Rooms />} />
+          <Route path="/beds" element={<Beds />} />
           <Route path="/tenants" element={<CrudPage entityType="tenants" title="Tenants" columns={tenantColumns} />} />
+          <Route path="/attendance" element={<ComingSoon title="Attendance" />} />
+          <Route path="/tickets" element={<ComingSoon title="Tickets" />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </div>
     </div>

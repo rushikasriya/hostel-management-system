@@ -21,7 +21,7 @@ export const CrudPage = ({ entityType, title, columns }) => {
       setFormData(item);
     } else {
       const initialData = {};
-      columns.forEach(c => initialData[c.key] = '');
+      columns.forEach(c => initialData[c.key] = c.defaultValue !== undefined ? c.defaultValue : '');
       setFormData(initialData);
     }
     setIsModalOpen(true);
@@ -36,6 +36,27 @@ export const CrudPage = ({ entityType, title, columns }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileUpload = async (e, colKey) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+    
+    try {
+      const res = await fetch('/upload', {
+        method: 'POST',
+        body: uploadData,
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      setFormData(prev => ({ ...prev, [colKey]: data.photo_url }));
+      context.addToast('Image uploaded successfully', 'success');
+    } catch (err) {
+      context.addToast(err.message, 'error');
+    }
   };
 
   const handleSubmit = (e) => {
@@ -113,9 +134,9 @@ export const CrudPage = ({ entityType, title, columns }) => {
                   <X size={20} />
                 </button>
               </div>
-              <div className="modal-body">
+              <div className="modal-body form-grid">
                 {columns.filter(col => !col.hideInForm).map(col => (
-                  <div className="form-group" key={col.key}>
+                  <div className={`form-group ${col.type === 'file' || col.type === 'textarea' ? 'full-width' : ''}`} key={col.key}>
                     <label className="form-label">{col.label}</label>
                     {col.type === 'select' ? (
                       <select 
@@ -130,6 +151,18 @@ export const CrudPage = ({ entityType, title, columns }) => {
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                       </select>
+                    ) : col.type === 'file' ? (
+                      <div>
+                        {formData[col.key] && (
+                          <img src={formData[col.key]} alt="Preview" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />
+                        )}
+                        <input 
+                          type="file" 
+                          className="form-control" 
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload(e, col.key)}
+                        />
+                      </div>
                     ) : (
                       <input 
                         type={col.type || 'text'} 

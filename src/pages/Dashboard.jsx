@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Users, Home, DoorOpen, BedDouble, UserCheck } from 'lucide-react';
+import { Users, Home, DoorOpen, BedDouble, UserCheck, LayoutDashboard, CreditCard, ChevronRight } from 'lucide-react';
 
 export const Dashboard = () => {
   const { users, hostels, blocks, floors, rooms, beds, tenants } = useAppContext();
@@ -74,133 +74,137 @@ export const Dashboard = () => {
 
 
   const stats = [
-    { label: 'Total Hostels', value: getActiveCount(hostels), icon: <Home size={28} /> },
-    { label: 'Total Rooms', value: getActiveCount(rooms), icon: <DoorOpen size={28} /> },
-    { label: 'Total Beds', value: getActiveCount(beds), icon: <BedDouble size={28} /> },
-    { label: 'Active Tenants', value: getActiveCount(tenants), icon: <UserCheck size={28} /> },
-    { label: 'System Users', value: getActiveCount(users), icon: <Users size={28} /> },
+    { label: 'Total Hostels', value: getActiveCount(hostels), icon: <Home size={24} />, color: '#4361EE', bg: '#EFF4FF' },
+    { label: 'Total Blocks', value: getActiveCount(blocks), icon: <LayoutDashboard size={24} />, color: '#10B981', bg: '#ECFDF5' },
+    { label: 'Total Rooms', value: getActiveCount(rooms), icon: <DoorOpen size={24} />, color: '#4361EE', bg: '#EFF4FF' },
+    { label: 'Total Beds', value: totalBedsCount, icon: <BedDouble size={24} />, color: '#F59E0B', bg: '#FFFBEB' },
+    { label: 'Occupied Beds', value: occupiedBedsCount, icon: <Users size={24} />, color: '#F59E0B', bg: '#FFFBEB' },
+    { label: 'Vacant Beds', value: vacantBedsCount, icon: <BedDouble size={24} />, color: '#F59E0B', bg: '#FFFBEB' },
+    { label: 'Active Tenants', value: getActiveCount(tenants), icon: <UserCheck size={24} />, color: '#10B981', bg: '#ECFDF5' },
+    { label: 'Pending Payments', value: '₹45,000', icon: <CreditCard size={24} />, color: '#EF4444', bg: '#FEF2F2' },
   ];
 
   return (
     <div className="page-content" style={{ padding: '32px', maxWidth: '1400px', margin: '0 auto', width: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
       
       {/* Welcome Banner */}
-      <div style={{ 
-        background: 'linear-gradient(135deg, #6366f1 0%, #3b82f6 100%)', 
-        borderRadius: '16px', 
-        padding: '32px', 
-        color: 'white',
-        marginBottom: '32px',
-        boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.4)',
-        position: 'relative',
-        overflow: 'hidden'
+      <div className="card" style={{ 
+        padding: '32px 40px', 
+        marginBottom: '32px', 
+        background: 'linear-gradient(135deg, var(--primary-color) 0%, #1E3A8A 100%)', 
+        color: 'white', 
+        borderRadius: '16px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.4)'
       }}>
-        <div style={{ position: 'absolute', right: '-10%', top: '-50%', width: '300px', height: '300px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%', filter: 'blur(40px)' }}></div>
-        <h2 style={{ fontSize: '28px', fontWeight: 700, marginBottom: '8px', position: 'relative' }}>Welcome back, {localStorage.getItem('userName') || 'Admin'}! 👋</h2>
-        <p style={{ opacity: 0.9, fontSize: '15px', maxWidth: '600px', position: 'relative' }}>Here is what's happening with your hostels today. You have {occupiedBedsCount} beds currently occupied across {getActiveCount(blocks)} active blocks.</p>
+        <div>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '8px', color: 'white' }}>Welcome back, {localStorage.getItem('userName') || 'Admin'}! 👋</h1>
+          <p style={{ fontSize: '15px', opacity: 0.9, margin: 0, fontWeight: 500 }}>Here's an overview of your hostel operations today.</p>
+        </div>
+        <div style={{ 
+          background: 'rgba(255, 255, 255, 0.15)', 
+          padding: '12px 24px', 
+          borderRadius: '12px',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          <div style={{ fontSize: '13px', opacity: 0.9, marginBottom: '4px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Today's Date</div>
+          <div style={{ fontSize: '16px', fontWeight: 700 }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+        </div>
       </div>
 
-      <div className="dashboard-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
         {stats.map((stat, idx) => (
-          <div key={idx} className="card glass stat-card">
-            <div className="stat-icon">
-              {stat.icon}
+          <div key={idx} className="card stat-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '24px', position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ 
+                width: '56px', height: '56px', borderRadius: '12px', 
+                backgroundColor: stat.bg, color: stat.color,
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+                {stat.icon}
+              </div>
+              <div>
+                <p style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{stat.value}</p>
+                <h3 style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '6px' }}>{stat.label}</h3>
+              </div>
             </div>
-            <div className="stat-content">
-              <h3>{stat.label}</h3>
-              <p>{stat.value}</p>
-            </div>
+            <ChevronRight size={16} style={{ color: '#CBD5E1', position: 'absolute', top: '16px', right: '16px' }} />
           </div>
         ))}
       </div>
       
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-        {/* Occupancy Donut */}
-        <div className="card">
-          <h3 style={{ marginBottom: '24px', fontSize: '16px', fontWeight: 600 }}>Occupancy Overview</h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
+        {/* Occupancy Overview */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+          <h3 style={{ marginBottom: '32px', fontSize: '16px', fontWeight: 600 }}>Occupancy Overview</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '32px', flex: 1 }}>
             <div style={{
-              width: '120px', height: '120px', borderRadius: '50%',
-              background: `conic-gradient(#10b981 0% ${occupiedPercentage}%, #ef4444 ${occupiedPercentage}% 100%)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
+              width: '160px', height: '160px', borderRadius: '50%',
+              background: `conic-gradient(var(--primary-color) 0% ${occupiedPercentage}%, #E2E8F0 ${occupiedPercentage}% 100%)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              position: 'relative'
             }}>
-              <div style={{ width: '80px', height: '80px', background: 'var(--surface-color)', borderRadius: '50%' }}></div>
+              <div style={{ width: '120px', height: '120px', background: 'var(--surface-color)', borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: '24px', fontWeight: 700 }}>{Math.round(occupiedPercentage)}%</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Occupied</span>
+              </div>
             </div>
             <div>
-              <div style={{ marginBottom: '12px' }}>
+              <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>
-                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981' }}></span> Occupied Beds
+                  <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--primary-color)' }}></span> Occupied ({occupiedBedsCount})
                 </div>
-                <div style={{ fontWeight: 600, marginTop: '4px' }}>{occupiedBedsCount} ({occupiedPercentage}%)</div>
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>
-                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444' }}></span> Vacant Beds
+                  <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#E2E8F0' }}></span> Vacant ({vacantBedsCount})
                 </div>
-                <div style={{ fontWeight: 600, marginTop: '4px' }}>{vacantBedsCount} ({vacantPercentage}%)</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bar Chart */}
-        <div className="card span-2">
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600 }}>Block Wise Occupancy</h3>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', height: '140px', gap: '16px', paddingBottom: '20px', borderBottom: '1px solid var(--surface-border)', overflowX: 'auto' }}>
-            {blockWiseOccupancy.length === 0 ? (
-              <div style={{ width: '100%', textAlign: 'center', color: 'var(--text-secondary)' }}>No block data available</div>
-            ) : (
-              blockWiseOccupancy.map(block => (
-                <div key={block.label} title={block.tooltip} style={{ flex: 1, minWidth: '60px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'help' }}>
-                  <div className="bar-chart-bar" style={{ width: '32px', height: `${Math.max(block.val, 2)}%`, background: block.color, borderRadius: '6px 6px 0 0' }}></div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center', wordBreak: 'break-all', fontWeight: 500 }}>{block.label}<br/>({block.val}%)</span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Revenue Overview */}
-        <div className="card">
-          <h3 style={{ marginBottom: '24px', fontSize: '16px', fontWeight: 600 }}>Monthly Revenue Overview</h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
-            <div style={{
-              width: '120px', height: '120px', borderRadius: '50%',
-              background: donutBackground,
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <div style={{ width: '80px', height: '80px', background: 'var(--surface-color)', borderRadius: '50%' }}></div>
+        {/* Occupancy Trend */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+          <h3 style={{ marginBottom: '24px', fontSize: '16px', fontWeight: 600 }}>Occupancy Trend (This Month)</h3>
+          <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'flex-end', paddingLeft: '40px', paddingBottom: '24px' }}>
+            {/* Y-axis labels */}
+            <div style={{ position: 'absolute', left: 0, top: 0, bottom: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', color: 'var(--text-sidebar)', fontSize: '12px' }}>
+              <span>100%</span>
+              <span>75%</span>
+              <span>50%</span>
+              <span>25%</span>
+              <span>0%</span>
             </div>
-            <div style={{ flex: 1, minWidth: '150px' }}>
-              <div style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--surface-border)' }}>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Total Expected Revenue</div>
-                <div style={{ fontWeight: 700, fontSize: '18px', marginTop: '4px', color: 'var(--primary-color)' }}>
-                  ₹ {totalRevenue.toLocaleString()}
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '85px', overflowY: 'auto', paddingRight: '4px' }}>
-                {revenueData.length === 0 ? (
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>No revenue data</div>
-                ) : (
-                  revenueData.map((item, index) => (
-                    <div key={item.label}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: revenueColors[index % revenueColors.length], flexShrink: 0 }}></span> 
-                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
-                      </div>
-                      <div style={{ fontWeight: 600, fontSize: '13px', marginTop: '2px', paddingLeft: '16px' }}>
-                        ₹ {item.value.toLocaleString()} ({((item.value / totalRevenue) * 100).toFixed(1)}%)
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+            
+            {/* Horizontal lines */}
+            <div style={{ position: 'absolute', left: '40px', right: 0, top: '6px', bottom: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ borderBottom: '1px dashed var(--surface-border)', width: '100%' }}></div>
+              <div style={{ borderBottom: '1px dashed var(--surface-border)', width: '100%' }}></div>
+              <div style={{ borderBottom: '1px dashed var(--surface-border)', width: '100%' }}></div>
+              <div style={{ borderBottom: '1px dashed var(--surface-border)', width: '100%' }}></div>
+              <div style={{ borderBottom: '1px solid var(--surface-border)', width: '100%' }}></div>
+            </div>
+
+            {/* Mock Line Chart SVG */}
+            <svg width="100%" height="100%" style={{ position: 'absolute', left: '40px', right: 0, top: '6px', bottom: '24px', zIndex: 1 }} preserveAspectRatio="none" viewBox="0 0 100 100">
+              <path d="M 0 50 Q 10 40 20 50 T 40 40 T 60 60 T 80 40 T 100 50" fill="none" stroke="var(--primary-color)" strokeWidth="3" vectorEffect="non-scaling-stroke" />
+              <path d="M 0 50 Q 10 40 20 50 T 40 40 T 60 60 T 80 40 T 100 50 L 100 100 L 0 100 Z" fill="rgba(67, 97, 238, 0.1)" stroke="none" vectorEffect="non-scaling-stroke" />
+            </svg>
+
+            {/* X-axis labels */}
+            <div style={{ position: 'absolute', left: '40px', right: 0, bottom: 0, display: 'flex', justifyContent: 'space-between', color: 'var(--text-sidebar)', fontSize: '12px' }}>
+              <span>1 May</span>
+              <span>8 May</span>
+              <span>15 May</span>
+              <span>22 May</span>
+              <span>29 May</span>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

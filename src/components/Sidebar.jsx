@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Home, Layers, Box, DoorOpen, BedDouble, UserCheck } from 'lucide-react';
+import { LayoutDashboard, Users, Home, Layers, Box, DoorOpen, BedDouble, UserCheck, Settings, CreditCard, FileText, AlertCircle, CalendarCheck } from 'lucide-react';
 
 export const Sidebar = () => {
   const navItems = [
@@ -12,13 +12,21 @@ export const Sidebar = () => {
     { path: '/rooms', name: 'Rooms', icon: <DoorOpen size={20} /> },
     { path: '/beds', name: 'Beds', icon: <BedDouble size={20} /> },
     { path: '/tenants', name: 'Tenants', icon: <UserCheck size={20} /> },
+    { path: '/attendance', name: 'Attendance', icon: <CalendarCheck size={20} /> },
+    { path: '/tickets', name: 'Tickets', icon: <AlertCircle size={20} /> },
+    { path: '/settings', name: 'Settings', icon: <Settings size={20} /> },
   ];
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo">
-        <Home size={28} />
-        HostelApp
+      <div className="sidebar-logo" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', padding: '0 12px' }}>
+        <div style={{ width: '40px', height: '40px', background: 'var(--sidebar-active)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Home size={24} color="white" />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontSize: '18px', fontWeight: 800, color: 'white', letterSpacing: '1px', lineHeight: 1 }}>HOSTEL</span>
+          <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--text-sidebar)', letterSpacing: '1.5px', marginTop: '2px' }}>MANAGEMENT</span>
+        </div>
       </div>
       <nav className="nav-links">
         {navItems.map((item) => (

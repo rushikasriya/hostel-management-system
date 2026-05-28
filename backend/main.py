@@ -1,4 +1,9 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi.staticfiles import StaticFiles
+import os
+import shutil
+import uuid
+
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from typing import Optional
@@ -17,8 +22,10 @@ app.add_middleware(CORSMiddleware,
 # --- Pydantic Models ---
 
 class User(BaseModel):
+    photo_url: str | None = None
     user_name: str
     contact_no: str | None = None
+    address: str | None = None
     role_id: int | None = None
     email_id: EmailStr
     password: str | None = "123456"
@@ -29,32 +36,44 @@ class Login(BaseModel):
     password: str
 
 class Hostel(BaseModel):
+    photo_url: str | None = None
     hostel_name: str | None = None
     hostel_code: str | None = None
     location_id: int | None = None
     status: str | None = None
 
 class Block(BaseModel):
+    photo_url: str | None = None
     hostel_id: int | None = None
     block_name: str
     manager_id: int | None = None
     block_incharge_id: int | None = None
 
 class Floor(BaseModel):
+    photo_url: str | None = None
     block_id: int
     floor_name: str
     incharge_id: int | None = None
 
 class Room(BaseModel):
+    photo_url: str | None = None
     floor_id: int
     room_no: str
 
+def log_bed_history(cursor, bed_id: int, tenant_id: int | None, action: str, notes: str | None = None):
+    cursor.execute(
+        "INSERT INTO bed_history (bed_id, tenant_id, action, notes) VALUES (%s, %s, %s, %s)",
+        (bed_id, tenant_id, action, notes)
+    )
+
 class Bed(BaseModel):
+    photo_url: str | None = None
     room_id: int
     bed_no: str
     status: Optional[str] = "Vacant"
 
 class Tenant(BaseModel):
+    photo_url: str | None = None
     tenant_name: str
     phone: Optional[str] = None
     emergency_phone: Optional[str] = None
@@ -65,7 +84,22 @@ class Tenant(BaseModel):
     joining_date: Optional[date] = None
 
 
+
+# --- UPLOADS ---
+os.makedirs('uploads', exist_ok=True)
+app.mount('/uploads', StaticFiles(directory='uploads'), name='uploads')
+
+@app.post('/upload')
+async def upload_file(file: UploadFile = File(...)):
+    ext = file.filename.split('.')[-1]
+    filename = f'{uuid.uuid4()}.{ext}'
+    path = os.path.join('uploads', filename)
+    with open(path, 'wb') as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    return {'photo_url': f'/uploads/{filename}'}
+
 # --- USERS ---
+
 
 @app.post("/login")
 def login_user(login: Login):
@@ -74,7 +108,7 @@ def login_user(login: Login):
     query = """
     SELECT user_id, user_name, email_id, role_id, status
     FROM users
-    WHERE email_id = ? AND password = ? AND status = 'T'
+    WHERE email_id = %s AND password = %s AND status = 'T'
     """
     cursor.execute(query, (login.email_id, login.password))
     user = cursor.fetchone()
@@ -91,10 +125,10 @@ def create_user(user: User):
     cursor = db.cursor()
     default_password = 123456
     query = """
-    INSERT INTO users (user_name, contact_no, role_id, email_id, password, status)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO users (user_name, contact_no, address, role_id, email_id, password, status, photo_url)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     """
-    values = (user.user_name, user.contact_no, user.role_id, user.email_id, default_password, user.status)
+    values = (user.user_name, user.contact_no, user.address, user.role_id, user.email_id, default_password, user.status, user.photo_url)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -104,7 +138,7 @@ def create_user(user: User):
 def get_users():
     db = localhost()
     cursor = db.cursor()
-    query = """SELECT u.user_id, u.user_name, u.contact_no, u.email_id, u.role_id, r.role_name, u.status 
+    query = """SELECT u.user_id, u.user_name, u.contact_no, u.address, u.email_id, u.role_id, r.role_name, u.status, u.photo_url 
                FROM users u JOIN roles r ON r.id = u.role_id"""
     cursor.execute(query)
     users = cursor.fetchall()
@@ -115,8 +149,8 @@ def get_users():
 def get_user(user_id: int):
     db = localhost()
     cursor = db.cursor()
-    query = """SELECT u.user_id, u.user_name, u.contact_no, u.email_id, u.role_id, r.role_name, u.status 
-               FROM users u JOIN roles r ON r.id = u.role_id WHERE user_id = ?"""
+    query = """SELECT u.user_id, u.user_name, u.contact_no, u.address, u.email_id, u.role_id, r.role_name, u.status, u.photo_url 
+               FROM users u JOIN roles r ON r.id = u.role_id WHERE user_id = %s"""
     cursor.execute(query, (user_id,))
     user = cursor.fetchone()
     db.close()
@@ -128,8 +162,8 @@ def get_user(user_id: int):
 def update_user(user_id: int, user: User):
     db = localhost()
     cursor = db.cursor()
-    query = """UPDATE users SET user_name = ?, contact_no = ?, role_id = ?, email_id = ?, status = ? WHERE user_id = ?"""
-    values = (user.user_name, user.contact_no, user.role_id, user.email_id, user.status, user_id)
+    query = """UPDATE users SET user_name = %s, contact_no = %s, address = %s, role_id = %s, email_id = %s, status = %s, photo_url = %s WHERE user_id = %s"""
+    values = (user.user_name, user.contact_no, user.address, user.role_id, user.email_id, user.status, user.photo_url, user_id)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -141,7 +175,7 @@ def update_user(user_id: int, user: User):
 def delete_user(user_id: int):
     db = localhost()
     cursor = db.cursor()
-    query = "update users set status = 'F' WHERE user_id = ?"
+    query = "update users set status = 'F' WHERE user_id = %s"
     cursor.execute(query, (user_id,))
     db.commit()
     db.close()
@@ -171,8 +205,8 @@ def create_hostel(hostel: Hostel):
     if not h_code and hostel.hostel_name:
         h_code = "".join([word[0].upper() for word in hostel.hostel_name.split() if word])
         
-    query = "INSERT INTO hostels (hostel_name, hostel_code, location_id, status) VALUES (?, ?, ?, ?)"
-    values = (hostel.hostel_name, h_code, hostel.location_id, 'T')
+    query = "INSERT INTO hostels (hostel_name, hostel_code, location_id, status, photo_url) VALUES (%s, %s, %s, %s, %s)"
+    values = (hostel.hostel_name, h_code, hostel.location_id, 'T', hostel.photo_url)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -192,7 +226,7 @@ def get_hostels():
 def get_hostel(id: int):
     db = localhost()
     cursor = db.cursor()
-    query = "SELECT * FROM hostels WHERE id = ?"
+    query = "SELECT * FROM hostels WHERE id = %s"
     cursor.execute(query, (id,))
     hostel = cursor.fetchone()
     db.close()
@@ -209,8 +243,8 @@ def update_hostel(id: int, hostel: Hostel):
     if not h_code and hostel.hostel_name:
         h_code = "".join([word[0].upper() for word in hostel.hostel_name.split() if word])
         
-    query = "UPDATE hostels SET hostel_name = ?, hostel_code = ?, location_id = ?, status = ? WHERE id = ?"
-    values = (hostel.hostel_name, h_code, hostel.location_id, hostel.status, id)
+    query = "UPDATE hostels SET hostel_name = %s, hostel_code = %s, location_id = %s, status = %s, photo_url = %s WHERE id = %s"
+    values = (hostel.hostel_name, h_code, hostel.location_id, hostel.status, hostel.photo_url, id)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -222,7 +256,7 @@ def update_hostel(id: int, hostel: Hostel):
 def delete_hostel(id: int):
     db = localhost()
     cursor = db.cursor()
-    query = "update hostels set status = 'F' WHERE id = ?"
+    query = "update hostels set status = 'F' WHERE id = %s"
     cursor.execute(query, (id,))
     db.commit()
     db.close()
@@ -303,15 +337,15 @@ def create_block(block: Block):
     cursor = db.cursor()
     
     if block.hostel_id:
-        cursor.execute("SELECT hostel_code FROM hostels WHERE id = ?", (block.hostel_id,))
+        cursor.execute("SELECT hostel_code FROM hostels WHERE id = %s", (block.hostel_id,))
         h_row = cursor.fetchone()
         if h_row and h_row.get('hostel_code'):
             prefix = h_row['hostel_code'] + '-'
             if not block.block_name.startswith(prefix):
                 block.block_name = f"{h_row['hostel_code']}-{block.block_name}"
 
-    query = "INSERT INTO blocks (hostel_id, block_name, manager_id, block_incharge_id) VALUES (?, ?, ?, ?)"
-    values = (block.hostel_id, block.block_name, block.manager_id, block.block_incharge_id)
+    query = "INSERT INTO blocks (hostel_id, block_name, manager_id, block_incharge_id, photo_url) VALUES (%s, %s, %s, %s, %s)"
+    values = (block.hostel_id, block.block_name, block.manager_id, block.block_incharge_id, block.photo_url)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -331,7 +365,7 @@ def get_blocks():
 def get_block(id: int):
     db = localhost()
     cursor = db.cursor()
-    query = "SELECT * FROM blocks WHERE id = ?"
+    query = "SELECT * FROM blocks WHERE id = %s"
     cursor.execute(query, (id,))
     block = cursor.fetchone()
     db.close()
@@ -343,8 +377,8 @@ def get_block(id: int):
 def update_block(id: int, block: Block):
     db = localhost()
     cursor = db.cursor()
-    query = "UPDATE blocks SET hostel_id = ?, block_name = ?, manager_id = ?, block_incharge_id = ? WHERE id = ?"
-    values = (block.hostel_id, block.block_name, block.manager_id, block.block_incharge_id, id)
+    query = "UPDATE blocks SET hostel_id = %s, block_name = %s, manager_id = %s, block_incharge_id = %s, photo_url = %s WHERE id = %s"
+    values = (block.hostel_id, block.block_name, block.manager_id, block.block_incharge_id, block.photo_url, id)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -356,7 +390,7 @@ def update_block(id: int, block: Block):
 def delete_block(id: int):
     db = localhost()
     cursor = db.cursor()
-    query = "DELETE FROM blocks WHERE id = ?"
+    query = "DELETE FROM blocks WHERE id = %s"
     cursor.execute(query, (id,))
     db.commit()
     db.close()
@@ -371,8 +405,8 @@ def delete_block(id: int):
 def create_floor(floor: Floor):
     db = localhost()
     cursor = db.cursor()
-    query = "INSERT INTO floors (block_id, floor_name, incharge_id) VALUES (?, ?, ?)"
-    values = (floor.block_id, floor.floor_name, floor.incharge_id)
+    query = "INSERT INTO floors (block_id, floor_name, incharge_id, photo_url) VALUES (%s, %s, %s, %s)"
+    values = (floor.block_id, floor.floor_name, floor.incharge_id, floor.photo_url)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -392,7 +426,7 @@ def get_floors():
 def get_floor(id: int):
     db = localhost()
     cursor = db.cursor()
-    query = "SELECT * FROM floors WHERE id = ?"
+    query = "SELECT * FROM floors WHERE id = %s"
     cursor.execute(query, (id,))
     floor = cursor.fetchone()
     db.close()
@@ -404,8 +438,8 @@ def get_floor(id: int):
 def update_floor(id: int, floor: Floor):
     db = localhost()
     cursor = db.cursor()
-    query = "UPDATE floors SET block_id = ?, floor_name = ?, incharge_id = ? WHERE id = ?"
-    values = (floor.block_id, floor.floor_name, floor.incharge_id, id)
+    query = "UPDATE floors SET block_id = %s, floor_name = %s, incharge_id = %s, photo_url = %s WHERE id = %s"
+    values = (floor.block_id, floor.floor_name, floor.incharge_id, floor.photo_url, id)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -417,7 +451,7 @@ def update_floor(id: int, floor: Floor):
 def delete_floor(id: int):
     db = localhost()
     cursor = db.cursor()
-    query = "DELETE FROM floors WHERE id = ?"
+    query = "DELETE FROM floors WHERE id = %s"
     cursor.execute(query, (id,))
     db.commit()
     db.close()
@@ -432,8 +466,8 @@ def delete_floor(id: int):
 def create_room(room: Room):
     db = localhost()
     cursor = db.cursor()
-    query = "INSERT INTO rooms (floor_id, room_no) VALUES (?, ?)"
-    values = (room.floor_id, room.room_no)
+    query = "INSERT INTO rooms (floor_id, room_no, photo_url) VALUES (%s, %s, %s)"
+    values = (room.floor_id, room.room_no, room.photo_url)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -453,7 +487,7 @@ def get_rooms():
 def get_room(id: int):
     db = localhost()
     cursor = db.cursor()
-    query = "SELECT * FROM rooms WHERE id = ?"
+    query = "SELECT * FROM rooms WHERE id = %s"
     cursor.execute(query, (id,))
     room = cursor.fetchone()
     db.close()
@@ -465,8 +499,8 @@ def get_room(id: int):
 def update_room(id: int, room: Room):
     db = localhost()
     cursor = db.cursor()
-    query = "UPDATE rooms SET floor_id = ?, room_no = ? WHERE id = ?"
-    values = (room.floor_id, room.room_no, id)
+    query = "UPDATE rooms SET floor_id = %s, room_no = %s, photo_url = %s WHERE id = %s"
+    values = (room.floor_id, room.room_no, room.photo_url, id)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -478,7 +512,7 @@ def update_room(id: int, room: Room):
 def delete_room(id: int):
     db = localhost()
     cursor = db.cursor()
-    query = "DELETE FROM rooms WHERE id = ?"
+    query = "DELETE FROM rooms WHERE id = %s"
     cursor.execute(query, (id,))
     db.commit()
     db.close()
@@ -494,9 +528,13 @@ def create_bed(bed: Bed):
     db = localhost()
     cursor = db.cursor()
     status = 'Vacant' # Force default to vacant on creation
-    query = "INSERT INTO beds (room_id, bed_no, status) VALUES (?, ?, ?)"
-    values = (bed.room_id, bed.bed_no, status)
+    query = "INSERT INTO beds (room_id, bed_no, status, photo_url) VALUES (%s, %s, %s, %s) RETURNING id"
+    values = (bed.room_id, bed.bed_no, status, bed.photo_url)
     cursor.execute(query, values)
+    new_bed_id = cursor.fetchone()['id']
+    
+    log_bed_history(cursor, new_bed_id, None, "Created", f"Bed {bed.bed_no} added to room {bed.room_id}")
+
     db.commit()
     db.close()
     return {"message": "Bed created successfully"}
@@ -515,7 +553,7 @@ def get_beds():
 def get_bed(id: int):
     db = localhost()
     cursor = db.cursor()
-    query = "SELECT * FROM beds WHERE id = ?"
+    query = "SELECT * FROM beds WHERE id = %s"
     cursor.execute(query, (id,))
     bed = cursor.fetchone()
     db.close()
@@ -527,8 +565,8 @@ def get_bed(id: int):
 def update_bed(id: int, bed: Bed):
     db = localhost()
     cursor = db.cursor()
-    query = "UPDATE beds SET room_id = ?, bed_no = ?, status = ? WHERE id = ?"
-    values = (bed.room_id, bed.bed_no, bed.status, id)
+    query = "UPDATE beds SET room_id = %s, bed_no = %s, status = %s, photo_url = %s WHERE id = %s"
+    values = (bed.room_id, bed.bed_no, bed.status, bed.photo_url, id)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -540,7 +578,7 @@ def update_bed(id: int, bed: Bed):
 def delete_bed(id: int):
     db = localhost()
     cursor = db.cursor()
-    query = "DELETE FROM beds WHERE id = ?"
+    query = "DELETE FROM beds WHERE id = %s"
     cursor.execute(query, (id,))
     db.commit()
     db.close()
@@ -557,15 +595,17 @@ def create_tenant(tenant: Tenant):
     cursor = db.cursor()
     query = """
     INSERT INTO tenants
-    (tenant_name, phone, emergency_phone, designation, address, bed_id, fee, joining_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    (tenant_name, phone, emergency_phone, designation, address, bed_id, fee, joining_date, photo_url)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
     """
     values = (tenant.tenant_name, tenant.phone, tenant.emergency_phone, tenant.designation,
-              tenant.address, tenant.bed_id, tenant.fee, tenant.joining_date)
+              tenant.address, tenant.bed_id, tenant.fee, tenant.joining_date, tenant.photo_url)
     cursor.execute(query, values)
+    new_tenant_id = cursor.fetchone()['id']
     
     if tenant.bed_id:
-        cursor.execute("UPDATE beds SET status = 'Occupied' WHERE id = ?", (tenant.bed_id,))
+        cursor.execute("UPDATE beds SET status = 'Occupied' WHERE id = %s", (tenant.bed_id,))
+        log_bed_history(cursor, tenant.bed_id, new_tenant_id, "Assigned", f"Assigned to {tenant.tenant_name}")
         
     db.commit()
     db.close()
@@ -585,7 +625,7 @@ def get_tenants():
 def get_tenant(id: int):
     db = localhost()
     cursor = db.cursor()
-    query = "SELECT * FROM tenants WHERE id = ?"
+    query = "SELECT * FROM tenants WHERE id = %s"
     cursor.execute(query, (id,))
     tenant = cursor.fetchone()
     db.close()
@@ -598,18 +638,18 @@ def update_tenant(id: int, tenant: Tenant):
     db = localhost()
     cursor = db.cursor()
     
-    cursor.execute("SELECT bed_id FROM tenants WHERE id = ?", (id,))
+    cursor.execute("SELECT bed_id FROM tenants WHERE id = %s", (id,))
     old_tenant = cursor.fetchone()
     old_bed_id = old_tenant['bed_id'] if old_tenant else None
 
     query = """
     UPDATE tenants
-    SET tenant_name = ?, phone = ?, emergency_phone = ?, designation = ?,
-        address = ?, bed_id = ?, fee = ?, joining_date = ?
-    WHERE id = ?
+    SET tenant_name = %s, phone = %s, emergency_phone = %s, designation = %s,
+        address = %s, bed_id = %s, fee = %s, joining_date = %s, photo_url = %s
+    WHERE id = %s
     """
     values = (tenant.tenant_name, tenant.phone, tenant.emergency_phone, tenant.designation,
-              tenant.address, tenant.bed_id, tenant.fee, tenant.joining_date, id)
+              tenant.address, tenant.bed_id, tenant.fee, tenant.joining_date, tenant.photo_url, id)
     cursor.execute(query, values)
     
     if cursor.rowcount == 0:
@@ -617,9 +657,11 @@ def update_tenant(id: int, tenant: Tenant):
         raise HTTPException(status_code=404, detail="Tenant not found")
         
     if old_bed_id and old_bed_id != tenant.bed_id:
-        cursor.execute("UPDATE beds SET status = 'Vacant' WHERE id = ?", (old_bed_id,))
-    if tenant.bed_id:
-        cursor.execute("UPDATE beds SET status = 'Occupied' WHERE id = ?", (tenant.bed_id,))
+        cursor.execute("UPDATE beds SET status = 'Vacant' WHERE id = %s", (old_bed_id,))
+        log_bed_history(cursor, old_bed_id, id, "Vacated", f"Vacated by {tenant.tenant_name} (transferred)")
+    if tenant.bed_id and old_bed_id != tenant.bed_id:
+        cursor.execute("UPDATE beds SET status = 'Occupied' WHERE id = %s", (tenant.bed_id,))
+        log_bed_history(cursor, tenant.bed_id, id, "Assigned", f"Assigned to {tenant.tenant_name}")
 
     db.commit()
     db.close()
@@ -630,10 +672,10 @@ def delete_tenant(id: int):
     db = localhost()
     cursor = db.cursor()
     
-    cursor.execute("SELECT bed_id FROM tenants WHERE id = ?", (id,))
+    cursor.execute("SELECT bed_id FROM tenants WHERE id = %s", (id,))
     old_tenant = cursor.fetchone()
     
-    query = "DELETE FROM tenants WHERE id = ?"
+    query = "DELETE FROM tenants WHERE id = %s"
     cursor.execute(query, (id,))
     
     if cursor.rowcount == 0:
@@ -641,12 +683,21 @@ def delete_tenant(id: int):
         raise HTTPException(status_code=404, detail="Tenant not found")
         
     if old_tenant and old_tenant['bed_id']:
-        cursor.execute("UPDATE beds SET status = 'Vacant' WHERE id = ?", (old_tenant['bed_id'],))
+        cursor.execute("UPDATE beds SET status = 'Vacant' WHERE id = %s", (old_tenant['bed_id'],))
+        log_bed_history(cursor, old_tenant['bed_id'], id, "Vacated", f"Tenant deleted")
         
     db.commit()
     db.close()
     return {"message": "Tenant deleted successfully"}
-
+@app.get("/getBedHistory/{bed_id}")
+def get_bed_history(bed_id: int):
+    db = localhost()
+    cursor = db.cursor()
+    query = "SELECT h.*, t.tenant_name FROM bed_history h LEFT JOIN tenants t ON h.tenant_id = t.id WHERE h.bed_id = %s ORDER BY h.created_at DESC"
+    cursor.execute(query, (bed_id,))
+    history = cursor.fetchall()
+    db.close()
+    return history
 
 import os
 from fastapi.responses import FileResponse
