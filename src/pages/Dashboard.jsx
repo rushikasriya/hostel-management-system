@@ -36,6 +36,43 @@ export const Dashboard = () => {
     };
   });
 
+  const activeTenants = (tenants || []).filter(t => !t.isDeleted);
+  const totalRevenue = activeTenants.reduce((sum, t) => sum + (Number(t.fee) || 0), 0);
+
+  const revenueByBlock = {};
+  activeTenants.forEach(tenant => {
+    const bed = beds?.find(b => b.id === tenant.bed_id || b.bed_id === tenant.bed_id);
+    if (!bed) return;
+    const room = rooms?.find(r => r.id === bed.room_id || r.room_id === bed.room_id);
+    if (!room) return;
+    const floor = floors?.find(f => f.id === room.floor_id || f.floor_id === room.floor_id);
+    if (!floor) return;
+    const block = blocks?.find(b => b.id === floor.block_id || b.block_id === floor.block_id);
+    if (!block) return;
+    
+    const blockName = block.block_name || 'Unknown';
+    revenueByBlock[blockName] = (revenueByBlock[blockName] || 0) + (Number(tenant.fee) || 0);
+  });
+
+  const revenueData = Object.entries(revenueByBlock)
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value);
+
+  const revenueColors = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
+  
+  let currentPercentage = 0;
+  const gradientStops = revenueData.map((item, index) => {
+    const percentage = totalRevenue > 0 ? (item.value / totalRevenue) * 100 : 0;
+    const stop = `${revenueColors[index % revenueColors.length]} ${currentPercentage}% ${currentPercentage + percentage}%`;
+    currentPercentage += percentage;
+    return stop;
+  }).join(', ');
+
+  const donutBackground = revenueData.length > 0 
+    ? `conic-gradient(${gradientStops})` 
+    : 'var(--surface-border)';
+
+
   const stats = [
     { label: 'Total Hostels', value: getActiveCount(hostels), icon: <Home size={28} /> },
     { label: 'Total Rooms', value: getActiveCount(rooms), icon: <DoorOpen size={28} /> },
@@ -125,39 +162,45 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* Fee Collection */}
+        {/* Revenue Overview */}
         <div className="card">
-          <h3 style={{ marginBottom: '24px', fontSize: '16px', fontWeight: 600 }}>Fee Collection Overview</h3>
+          <h3 style={{ marginBottom: '24px', fontSize: '16px', fontWeight: 600 }}>Monthly Revenue Overview</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
             <div style={{
               width: '120px', height: '120px', borderRadius: '50%',
-              background: 'conic-gradient(#10b981 0% 70%, #ef4444 70% 80%, #f59e0b 80% 100%)',
+              background: donutBackground,
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
-              <div style={{ width: '80px', height: '80px', background: '#fff', borderRadius: '50%' }}></div>
+              <div style={{ width: '80px', height: '80px', background: 'var(--surface-color)', borderRadius: '50%' }}></div>
             </div>
-            <div>
-              <div style={{ marginBottom: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></span> Collected
+            <div style={{ flex: 1, minWidth: '150px' }}>
+              <div style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--surface-border)' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Total Expected Revenue</div>
+                <div style={{ fontWeight: 700, fontSize: '18px', marginTop: '4px', color: 'var(--primary-color)' }}>
+                  ₹ {totalRevenue.toLocaleString()}
                 </div>
-                <div style={{ fontWeight: 600, fontSize: '13px', marginTop: '2px' }}>₹ 8,75,000 (70%)</div>
               </div>
-              <div style={{ marginBottom: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }}></span> Pending
-                </div>
-                <div style={{ fontWeight: 600, fontSize: '13px', marginTop: '2px' }}>₹ 1,25,000 (10%)</div>
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }}></span> Upcoming
-                </div>
-                <div style={{ fontWeight: 600, fontSize: '13px', marginTop: '2px' }}>₹ 2,50,000 (20%)</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '85px', overflowY: 'auto', paddingRight: '4px' }}>
+                {revenueData.length === 0 ? (
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>No revenue data</div>
+                ) : (
+                  revenueData.map((item, index) => (
+                    <div key={item.label}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: revenueColors[index % revenueColors.length], flexShrink: 0 }}></span> 
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
+                      </div>
+                      <div style={{ fontWeight: 600, fontSize: '13px', marginTop: '2px', paddingLeft: '16px' }}>
+                        ₹ {item.value.toLocaleString()} ({((item.value / totalRevenue) * 100).toFixed(1)}%)
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -168,6 +168,7 @@ function App() {
       label: 'Status', 
       type: 'select', 
       options: [{label: 'Vacant', value: 'Vacant'}, {label: 'Occupied', value: 'Occupied'}],
+      hideInForm: true, // Automatically managed by the system
       render: (val) => (
         <span className={`badge ${val === 'Occupied' ? 'badge-active' : 'badge-inactive'}`}>
           {val}

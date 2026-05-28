@@ -493,8 +493,9 @@ def delete_room(id: int):
 def create_bed(bed: Bed):
     db = localhost()
     cursor = db.cursor()
+    status = 'Vacant' # Force default to vacant on creation
     query = "INSERT INTO beds (room_id, bed_no, status) VALUES (?, ?, ?)"
-    values = (bed.room_id, bed.bed_no, bed.status)
+    values = (bed.room_id, bed.bed_no, status)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -562,6 +563,10 @@ def create_tenant(tenant: Tenant):
     values = (tenant.tenant_name, tenant.phone, tenant.emergency_phone, tenant.designation,
               tenant.address, tenant.bed_id, tenant.fee, tenant.joining_date)
     cursor.execute(query, values)
+    
+    if tenant.bed_id:
+        cursor.execute("UPDATE beds SET status = 'Occupied' WHERE id = ?", (tenant.bed_id,))
+        
     db.commit()
     db.close()
     return {"message": "Tenant created successfully"}
@@ -592,6 +597,11 @@ def get_tenant(id: int):
 def update_tenant(id: int, tenant: Tenant):
     db = localhost()
     cursor = db.cursor()
+    
+    cursor.execute("SELECT bed_id FROM tenants WHERE id = ?", (id,))
+    old_tenant = cursor.fetchone()
+    old_bed_id = old_tenant['bed_id'] if old_tenant else None
+
     query = """
     UPDATE tenants
     SET tenant_name = ?, phone = ?, emergency_phone = ?, designation = ?,
@@ -601,22 +611,40 @@ def update_tenant(id: int, tenant: Tenant):
     values = (tenant.tenant_name, tenant.phone, tenant.emergency_phone, tenant.designation,
               tenant.address, tenant.bed_id, tenant.fee, tenant.joining_date, id)
     cursor.execute(query, values)
+    
+    if cursor.rowcount == 0:
+        db.close()
+        raise HTTPException(status_code=404, detail="Tenant not found")
+        
+    if old_bed_id and old_bed_id != tenant.bed_id:
+        cursor.execute("UPDATE beds SET status = 'Vacant' WHERE id = ?", (old_bed_id,))
+    if tenant.bed_id:
+        cursor.execute("UPDATE beds SET status = 'Occupied' WHERE id = ?", (tenant.bed_id,))
+
     db.commit()
     db.close()
-    if cursor.rowcount == 0:
-        raise HTTPException(status_code=404, detail="Tenant not found")
     return {"message": "Tenant updated successfully"}
 
 @app.delete("/deleteTenant/{id}")
 def delete_tenant(id: int):
     db = localhost()
     cursor = db.cursor()
+    
+    cursor.execute("SELECT bed_id FROM tenants WHERE id = ?", (id,))
+    old_tenant = cursor.fetchone()
+    
     query = "DELETE FROM tenants WHERE id = ?"
     cursor.execute(query, (id,))
+    
+    if cursor.rowcount == 0:
+        db.close()
+        raise HTTPException(status_code=404, detail="Tenant not found")
+        
+    if old_tenant and old_tenant['bed_id']:
+        cursor.execute("UPDATE beds SET status = 'Vacant' WHERE id = ?", (old_tenant['bed_id'],))
+        
     db.commit()
     db.close()
-    if cursor.rowcount == 0:
-        raise HTTPException(status_code=404, detail="Tenant not found")
     return {"message": "Tenant deleted successfully"}
 
 
