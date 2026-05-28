@@ -15,7 +15,8 @@ def init_db():
       id SERIAL PRIMARY KEY,
       room_id INTEGER NOT NULL,
       bed_no TEXT NOT NULL,
-      status TEXT DEFAULT 'Vacant'
+      status TEXT DEFAULT 'Vacant',
+      photo_url TEXT DEFAULT NULL
     );
 
     CREATE TABLE blocks (
@@ -23,14 +24,16 @@ def init_db():
       hostel_id INTEGER DEFAULT NULL,
       block_name TEXT NOT NULL,
       manager_id INTEGER DEFAULT NULL,
-      block_incharge_id INTEGER DEFAULT NULL
+      block_incharge_id INTEGER DEFAULT NULL,
+      photo_url TEXT DEFAULT NULL
     );
 
     CREATE TABLE floors (
       id SERIAL PRIMARY KEY,
       block_id INTEGER NOT NULL,
       floor_name TEXT NOT NULL,
-      incharge_id INTEGER DEFAULT NULL
+      incharge_id INTEGER DEFAULT NULL,
+      photo_url TEXT DEFAULT NULL
     );
 
     CREATE TABLE hostels (
@@ -38,7 +41,8 @@ def init_db():
       hostel_name TEXT DEFAULT NULL,
       hostel_code TEXT DEFAULT NULL,
       location_id INTEGER DEFAULT NULL,
-      status TEXT DEFAULT NULL
+      status TEXT DEFAULT NULL,
+      photo_url TEXT DEFAULT NULL
     );
 
     CREATE TABLE locations (
@@ -55,7 +59,8 @@ def init_db():
     CREATE TABLE rooms (
       id SERIAL PRIMARY KEY,
       floor_id INTEGER NOT NULL,
-      room_no TEXT NOT NULL
+      room_no TEXT NOT NULL,
+      photo_url TEXT DEFAULT NULL
     );
 
     CREATE TABLE tenants (
@@ -67,7 +72,8 @@ def init_db():
       address TEXT,
       bed_id INTEGER DEFAULT NULL,
       fee REAL DEFAULT NULL,
-      joining_date DATE DEFAULT NULL
+      joining_date DATE DEFAULT NULL,
+      photo_url TEXT DEFAULT NULL
     );
 
     CREATE TABLE users (
