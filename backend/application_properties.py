@@ -2,6 +2,11 @@ import psycopg2
 import psycopg2.extras
 import os
 
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME = "dfpvrqwqf"
+CLOUDINARY_API_KEY = "572918385877734"
+CLOUDINARY_API_SECRET = "HBWYY"
+
 def localhost():
     # External connection for local development, internal logic for Render
     # Note: dpg-d8aqq76l51nc73f6601g-a is the internal hostname. 

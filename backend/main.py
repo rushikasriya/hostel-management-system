@@ -10,18 +10,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Configure Cloudinary (it will automatically use environment variables if present)
+# Configure Cloudinary
 cloudinary.config(
-    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
-    api_key=os.getenv('CLOUDINARY_API_KEY'),
-    api_secret=os.getenv('CLOUDINARY_API_SECRET')
+    cloud_name=CLOUDINARY_CLOUD_NAME,
+    api_key=CLOUDINARY_API_KEY,
+    api_secret=CLOUDINARY_API_SECRET
 )
 
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import date
-from application_properties import localhost
+from application_properties import localhost, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
 
 app = FastAPI()
 
@@ -104,7 +104,7 @@ app.mount('/uploads', StaticFiles(directory='uploads'), name='uploads')
 
 @app.post('/upload')
 async def upload_file(file: UploadFile = File(...)):
-    if os.getenv('CLOUDINARY_CLOUD_NAME'):
+    if CLOUDINARY_CLOUD_NAME:
         try:
             contents = await file.read()
             result = cloudinary.uploader.upload(contents)
