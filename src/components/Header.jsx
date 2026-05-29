@@ -1,9 +1,11 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { Bell, Search, LogOut } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
 export const Header = () => {
   const location = useLocation();
+  const { globalSearch, setGlobalSearch } = useAppContext();
   
   const getPageTitle = () => {
     if (location.pathname === '/') return 'Dashboard';
@@ -20,6 +22,8 @@ export const Header = () => {
           <input 
             type="text" 
             placeholder="Search anything..." 
+            value={globalSearch}
+            onChange={(e) => setGlobalSearch(e.target.value)}
             style={{ width: '100%', padding: '10px 10px 10px 40px', borderRadius: '24px', border: '1px solid var(--surface-border)', background: '#F8FAFC', outline: 'none', color: 'var(--text-primary)', fontSize: '14px' }}
           />
         </div>

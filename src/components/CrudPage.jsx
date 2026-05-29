@@ -9,6 +9,7 @@ export const CrudPage = ({ entityType, title, columns }) => {
   const addRecord = context.addRecord;
   const updateRecord = context.updateRecord;
   const softDeleteRecord = context.softDeleteRecord;
+  const globalSearch = context.globalSearch || '';
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -35,7 +36,17 @@ export const CrudPage = ({ entityType, title, columns }) => {
     }
   }, [searchParams, setSearchParams, columns]);
 
-  const activeData = data.filter(item => !item.isDeleted);
+  const activeData = data.filter(item => {
+    if (item.isDeleted) return false;
+    if (!globalSearch) return true;
+    
+    const searchLower = globalSearch.toLowerCase();
+    return Object.values(item).some(val => 
+      val !== null && 
+      val !== undefined && 
+      String(val).toLowerCase().includes(searchLower)
+    );
+  });
 
   const handleOpenModal = (item = null) => {
     setEditingItem(item);

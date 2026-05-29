@@ -24,6 +24,7 @@ export const AppProvider = ({ children }) => {
   const [tenants, setTenants] = useState(() => loadInitialData('tenants'));
   const [roles, setRoles] = useState([]);
   const [toasts, setToasts] = useState([]);
+  const [globalSearch, setGlobalSearch] = useState('');
 
   const addToast = (message, type = 'success') => {
     const id = generateId();
@@ -214,6 +215,7 @@ export const AppProvider = ({ children }) => {
   return (
     <AppContext.Provider value={{
       users, hostels, blocks, floors, rooms, beds, tenants, roles,
+      globalSearch, setGlobalSearch,
       addRecord, updateRecord, softDeleteRecord, addToast
     }}>
       {children}
