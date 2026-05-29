@@ -5,7 +5,7 @@ import os
 # Cloudinary Configuration
 CLOUDINARY_CLOUD_NAME = "dfpvrqwqf"
 CLOUDINARY_API_KEY = "572918385877734"
-CLOUDINARY_API_SECRET = "HBWYY"
+CLOUDINARY_API_SECRET = "4yzNLyapTGxpGUOujdqPcRPsMtY"
 
 def localhost():
     # External connection for local development, internal logic for Render
