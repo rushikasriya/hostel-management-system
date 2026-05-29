@@ -202,9 +202,9 @@ function App() {
   const tenantColumns = [
     { key: 'tenant_name', label: 'Tenant Name' },
     { key: 'phone', label: 'Phone' },
-    { key: 'emergency_phone', label: 'Emergency Phone' },
-    { key: 'designation', label: 'Designation' },
-    { key: 'address', label: 'Address' },
+    { key: 'emergency_phone', label: 'Emergency Phone', hideInTable: true },
+    { key: 'designation', label: 'Designation', hideInTable: true },
+    { key: 'address', label: 'Address', hideInTable: true },
     { 
       key: 'bed_id', 
       label: 'Bed', 
@@ -212,8 +212,38 @@ function App() {
       options: (formData) => (beds || []).filter(b => b.status === 'Vacant' || (formData && b.id === formData.bed_id)).map(b => ({ label: `${getRoomName(b.room_id)} - ${b.bed_no}${b.status !== 'Vacant' ? ' (Current)' : ''}`, value: b.id })),
       render: (val) => getBedName(val) 
     },
+    { 
+      key: 'management_info', 
+      label: 'Management', 
+      hideInForm: true,
+      render: (_, item) => {
+        if (!item.bed_id) return <span style={{color: 'var(--text-secondary)'}}>Not assigned</span>;
+        
+        const bed = beds?.find(b => b.id === item.bed_id);
+        const room = rooms?.find(r => r.id === bed?.room_id);
+        const floor = floors?.find(f => f.id === room?.floor_id);
+        const block = blocks?.find(b => b.id === floor?.block_id);
+        
+        return (
+          <div style={{ fontSize: '12px', lineHeight: '1.5' }}>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Manager:</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{getUserName(block?.manager_id)}</span>
+            </div>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Block Inc:</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{getUserName(block?.block_incharge_id)}</span>
+            </div>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Floor Inc:</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{getUserName(floor?.incharge_id)}</span>
+            </div>
+          </div>
+        );
+      }
+    },
     { key: 'fee', label: 'Fee', type: 'number' },
-    { key: 'joining_date', label: 'Joining Date', type: 'date' },
+    { key: 'joining_date', label: 'Joining Date', type: 'date', hideInTable: true },
     { 
       key: 'photo_url', 
       label: 'Photo', 
