@@ -106,7 +106,8 @@ app.mount('/uploads', StaticFiles(directory='uploads'), name='uploads')
 async def upload_file(file: UploadFile = File(...)):
     if os.getenv('CLOUDINARY_CLOUD_NAME'):
         try:
-            result = cloudinary.uploader.upload(file.file)
+            contents = await file.read()
+            result = cloudinary.uploader.upload(contents)
             return {'photo_url': result['secure_url']}
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Cloudinary upload failed: {str(e)}")
