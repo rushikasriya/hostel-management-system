@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { Building, Lock, Mail, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { Building, Lock, Mail, ArrowRight, ShieldCheck, Zap, ArrowLeft } from 'lucide-react';
 
 export const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState(null);
+  const [viewMode, setViewMode] = useState('login'); // 'login' | 'forgot'
 
-  const handleSubmit = async (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setSuccess('');
 
     if (!email || !password) {
       setError('Please enter both email and password.');
@@ -32,6 +35,40 @@ export const Login = ({ onLogin }) => {
       } else {
         const errorData = await response.json();
         setError(errorData.detail || 'Invalid email or password.');
+      }
+    } catch (err) {
+      setError('Failed to connect to server. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    if (!email || !password) {
+      setError('Please enter your email and a new password.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/resetPassword', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email_id: email, new_password: password })
+      });
+
+      if (response.ok) {
+        setSuccess('Password reset successfully! You can now sign in.');
+        setPassword('');
+        setTimeout(() => setViewMode('login'), 2000);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Failed to reset password.');
       }
     } catch (err) {
       setError('Failed to connect to server. Please try again.');
@@ -63,7 +100,7 @@ export const Login = ({ onLogin }) => {
         <div style={{ zIndex: 2, position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '120px' }}>
              <Building size={32} color="#60a5fa" />
-             <span style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.5px' }}>NexusHostel</span>
+             <span style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.5px' }}>Chetana Hostel</span>
           </div>
           <h1 style={{ fontSize: '48px', fontWeight: 700, lineHeight: 1.1, marginBottom: '24px', maxWidth: '500px' }}>
             Elevate your property management.
@@ -120,22 +157,24 @@ export const Login = ({ onLogin }) => {
           animation: 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
         }}>
           
-          {/* Mobile Logo Logo (visible only on small screens) */}
+          {/* Mobile Logo (visible only on small screens) */}
           <div className="mobile-logo" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', justifyContent: 'center' }}>
              <Building size={28} color="#3b82f6" />
-             <span style={{ fontSize: '22px', fontWeight: 800, color: '#1e293b' }}>NexusHostel</span>
+             <span style={{ fontSize: '22px', fontWeight: 800, color: '#1e293b' }}>Chetana Hostel</span>
           </div>
 
           <div style={{ marginBottom: '32px' }}>
             <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', marginBottom: '8px', letterSpacing: '-0.5px' }}>
-              Welcome back
+              {viewMode === 'login' ? 'Welcome back' : 'Reset Password'}
             </h2>
             <p style={{ color: '#64748b', fontSize: '15px' }}>
-              Enter your credentials to access your dashboard.
+              {viewMode === 'login' 
+                ? 'Enter your credentials to access your dashboard.' 
+                : 'Enter your email and a new password to reset it.'}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={viewMode === 'login' ? handleLoginSubmit : handleResetSubmit}>
             {error && (
               <div style={{
                 background: '#fef2f2',
@@ -152,6 +191,25 @@ export const Login = ({ onLogin }) => {
                 animation: 'shake 0.4s ease-in-out'
               }}>
                 <ShieldCheck size={18} /> {error}
+              </div>
+            )}
+
+            {success && (
+              <div style={{
+                background: '#ecfdf5',
+                color: '#10b981',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                marginBottom: '24px',
+                fontSize: '14px',
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                border: '1px solid #d1fae5',
+                animation: 'slideUp 0.4s ease-in-out'
+              }}>
+                <ShieldCheck size={18} /> {success}
               </div>
             )}
 
@@ -192,8 +250,16 @@ export const Login = ({ onLogin }) => {
 
             <div style={{ marginBottom: '32px' }}>
               <label style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
-                <span>Password</span>
-                <a href="#" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 600, transition: 'color 0.2s' }}>Forgot?</a>
+                <span>{viewMode === 'login' ? 'Password' : 'New Password'}</span>
+                {viewMode === 'login' && (
+                  <button 
+                    type="button"
+                    onClick={() => { setViewMode('forgot'); setError(''); setSuccess(''); }}
+                    style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 600, transition: 'color 0.2s', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  >
+                    Forgot?
+                  </button>
+                )}
               </label>
               <div style={{
                 position: 'relative',
@@ -253,14 +319,26 @@ export const Login = ({ onLogin }) => {
             >
               {isLoading ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div className="spinner"></div> Signing In...
+                  <div className="spinner"></div> {viewMode === 'login' ? 'Signing In...' : 'Resetting...'}
                 </div>
               ) : (
                 <>
-                  Sign In <ArrowRight size={18} />
+                  {viewMode === 'login' ? 'Sign In' : 'Reset Password'} <ArrowRight size={18} />
                 </>
               )}
             </button>
+            
+            {viewMode === 'forgot' && (
+              <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                <button 
+                  type="button"
+                  onClick={() => { setViewMode('login'); setError(''); setSuccess(''); }}
+                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '14px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%' }}
+                >
+                  <ArrowLeft size={14} /> Back to Sign In
+                </button>
+              </div>
+            )}
             
             <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '14px', color: '#64748b' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>

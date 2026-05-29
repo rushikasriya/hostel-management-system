@@ -48,6 +48,10 @@ class Login(BaseModel):
     email_id: EmailStr
     password: str
 
+class ResetPasswordRequest(BaseModel):
+    email_id: EmailStr
+    new_password: str
+
 class Hostel(BaseModel):
     photo_url: str | None = None
     hostel_name: str | None = None
@@ -139,6 +143,24 @@ def login_user(login: Login):
     if not user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return {"message": "Login successful", "user": user}
+
+@app.post("/resetPassword")
+def reset_password(data: ResetPasswordRequest):
+    db = localhost()
+    cursor = db.cursor()
+    
+    cursor.execute("SELECT * FROM users WHERE email_id = %s", (data.email_id,))
+    user = cursor.fetchone()
+    
+    if not user:
+        db.close()
+        raise HTTPException(status_code=404, detail="Email address not found")
+        
+    cursor.execute("UPDATE users SET password = %s WHERE email_id = %s", (data.new_password, data.email_id))
+    db.commit()
+    db.close()
+    
+    return {"message": "Password reset successfully"}
 
 @app.post("/addUser")
 def create_user(user: User):
