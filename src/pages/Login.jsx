@@ -100,7 +100,7 @@ export const Login = ({ onLogin }) => {
         <div style={{ zIndex: 2, position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '120px' }}>
              <Building size={32} color="#60a5fa" />
-             <span style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.5px' }}>Chetana Hostel</span>
+             <span style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.5px' }}>CHETANA HOSTELS</span>
           </div>
           <h1 style={{ fontSize: '48px', fontWeight: 700, lineHeight: 1.1, marginBottom: '24px', maxWidth: '500px' }}>
             Elevate your property management.
@@ -160,7 +160,7 @@ export const Login = ({ onLogin }) => {
           {/* Mobile Logo (visible only on small screens) */}
           <div className="mobile-logo" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px', justifyContent: 'center' }}>
              <Building size={28} color="#3b82f6" />
-             <span style={{ fontSize: '22px', fontWeight: 800, color: '#1e293b' }}>Chetana Hostel</span>
+             <span style={{ fontSize: '22px', fontWeight: 800, color: '#1e293b' }}>CHETANA HOSTELS</span>
           </div>
 
           <div style={{ marginBottom: '32px' }}>
