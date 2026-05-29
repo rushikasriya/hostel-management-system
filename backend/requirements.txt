@@ -4,3 +4,5 @@ pydantic
 psycopg2-binary
 email-validator
 python-multipart
+cloudinary
+python-dotenv

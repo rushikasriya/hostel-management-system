@@ -3,6 +3,19 @@ from fastapi.staticfiles import StaticFiles
 import os
 import shutil
 import uuid
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Configure Cloudinary (it will automatically use environment variables if present)
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET')
+)
 
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
@@ -91,12 +104,19 @@ app.mount('/uploads', StaticFiles(directory='uploads'), name='uploads')
 
 @app.post('/upload')
 async def upload_file(file: UploadFile = File(...)):
-    ext = file.filename.split('.')[-1]
-    filename = f'{uuid.uuid4()}.{ext}'
-    path = os.path.join('uploads', filename)
-    with open(path, 'wb') as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    return {'photo_url': f'/uploads/{filename}'}
+    if os.getenv('CLOUDINARY_CLOUD_NAME'):
+        try:
+            result = cloudinary.uploader.upload(file.file)
+            return {'photo_url': result['secure_url']}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Cloudinary upload failed: {str(e)}")
+    else:
+        ext = file.filename.split('.')[-1]
+        filename = f'{uuid.uuid4()}.{ext}'
+        path = os.path.join('uploads', filename)
+        with open(path, 'wb') as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        return {'photo_url': f'/uploads/{filename}'}
 
 # --- USERS ---
 
