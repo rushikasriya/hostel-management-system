@@ -3,7 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import { Check, X, Clock, Save, Calendar, Download, Eye } from 'lucide-react';
 
 export const Attendance = () => {
-  const { tenants, beds, rooms, floors, blocks, addToast } = useAppContext();
+  const { tenants, beds, rooms, floors, blocks, addToast, globalSearch } = useAppContext();
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [localState, setLocalState] = useState({}); // { tenant_id: { status, notes } }
   const [isSaving, setIsSaving] = useState(false);
@@ -92,10 +92,20 @@ export const Attendance = () => {
   };
 
   const filteredTenants = activeTenants.filter(t => {
+    // Check status filter
     const currentStatus = localState[t.id]?.status;
-    if (filterStatus === 'All') return true;
-    if (filterStatus === 'Unmarked') return !currentStatus;
-    return currentStatus === filterStatus;
+    let statusMatch = true;
+    if (filterStatus === 'Unmarked') statusMatch = !currentStatus;
+    else if (filterStatus !== 'All') statusMatch = currentStatus === filterStatus;
+    
+    if (!statusMatch) return false;
+
+    // Check global search filter
+    if (!globalSearch) return true;
+    
+    const searchLower = globalSearch.toLowerCase();
+    const searchString = `${t.tenant_name} ${t.phone || ''} ${getBedInfo(t.bed_id)}`.toLowerCase();
+    return searchString.includes(searchLower);
   });
 
   const handleDownloadCSV = () => {
