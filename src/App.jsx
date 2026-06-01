@@ -12,6 +12,7 @@ import { Rooms } from './pages/Rooms';
 import { Beds } from './pages/Beds';
 import { Login } from './pages/Login';
 import { ComingSoon } from './pages/ComingSoon';
+import { Attendance } from './pages/Attendance';
 import { Settings } from './pages/Settings';
 import { ExternalLink } from 'lucide-react';
 
@@ -273,7 +274,7 @@ function App() {
           <Route path="/rooms" element={<Rooms />} />
           <Route path="/beds" element={<Beds />} />
           <Route path="/tenants" element={<CrudPage entityType="tenants" title="Tenants" columns={tenantColumns} />} />
-          <Route path="/attendance" element={<ComingSoon title="Attendance" />} />
+          <Route path="/attendance" element={<Attendance />} />
           <Route path="/tickets" element={<ComingSoon title="Tickets" />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>

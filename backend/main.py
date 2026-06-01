@@ -100,6 +100,12 @@ class Tenant(BaseModel):
     fee: Optional[float] = None
     joining_date: Optional[date] = None
 
+class Attendance(BaseModel):
+    tenant_id: int
+    attendance_date: date
+    status: str
+    notes: Optional[str] = None
+
 
 
 # --- UPLOADS ---
@@ -732,6 +738,7 @@ def delete_tenant(id: int):
     db.commit()
     db.close()
     return {"message": "Tenant deleted successfully"}
+
 @app.get("/getBedHistory/{bed_id}")
 def get_bed_history(bed_id: int):
     db = localhost()
@@ -741,6 +748,40 @@ def get_bed_history(bed_id: int):
     history = cursor.fetchall()
     db.close()
     return history
+
+# --- ATTENDANCE ---
+
+@app.post("/addAttendance")
+def mark_attendance(attendance: Attendance):
+    db = localhost()
+    cursor = db.cursor()
+    
+    query = """
+    INSERT INTO attendance (tenant_id, attendance_date, status, notes)
+    VALUES (%s, %s, %s, %s)
+    ON CONFLICT (tenant_id, attendance_date) 
+    DO UPDATE SET status = EXCLUDED.status, notes = EXCLUDED.notes
+    """
+    values = (attendance.tenant_id, attendance.attendance_date, attendance.status, attendance.notes)
+    
+    cursor.execute(query, values)
+    db.commit()
+    db.close()
+    return {"message": "Attendance marked successfully"}
+
+@app.get("/getAttendance")
+def get_attendance(target_date: Optional[date] = None):
+    db = localhost()
+    cursor = db.cursor()
+    if target_date:
+        query = "SELECT * FROM attendance WHERE attendance_date = %s"
+        cursor.execute(query, (target_date,))
+    else:
+        query = "SELECT * FROM attendance"
+        cursor.execute(query)
+    records = cursor.fetchall()
+    db.close()
+    return records
 
 import os
 from fastapi.responses import FileResponse
