@@ -1,8 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Users, Home, Layers, Box, DoorOpen, BedDouble, UserCheck, Settings, CreditCard, FileText, AlertCircle, CalendarCheck } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
 export const Sidebar = () => {
+  const { userRole } = useAppContext();
+  
   const navItems = [
     { path: '/', name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { path: '/users', name: 'Users', icon: <Users size={20} /> },
@@ -15,7 +18,16 @@ export const Sidebar = () => {
     { path: '/attendance', name: 'Attendance', icon: <CalendarCheck size={20} /> },
     { path: '/tickets', name: 'Tickets', icon: <AlertCircle size={20} /> },
     { path: '/settings', name: 'Settings', icon: <Settings size={20} /> },
-  ];
+  ].filter(item => {
+    if (userRole === 'manager') {
+      return item.name !== 'Users';
+    } else if (userRole === 'blockIncharge') {
+      return !['Users', 'Hostels'].includes(item.name);
+    } else if (userRole === 'floorIncharge') {
+      return !['Users', 'Hostels', 'Blocks'].includes(item.name);
+    }
+    return true; // admin, superAdmin, or unknown
+  });
 
   return (
     <aside className="sidebar">

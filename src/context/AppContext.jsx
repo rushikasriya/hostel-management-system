@@ -212,11 +212,53 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const userId = parseInt(localStorage.getItem('userId'), 10);
+  const userRoleId = parseInt(localStorage.getItem('roleId'), 10);
+  const userRole = roles.find(r => r.id === userRoleId)?.role_name || '';
+
+  // Apply Role-Based Data Restrictions
+  let filteredBlocks = blocks;
+  let filteredFloors = floors;
+  let filteredRooms = rooms;
+  let filteredBeds = beds;
+  let filteredTenants = tenants;
+
+  if (userRole === 'manager') {
+    filteredBlocks = blocks.filter(b => b.manager_id === userId);
+    const validBlockIds = new Set(filteredBlocks.map(b => b.id));
+    filteredFloors = floors.filter(f => validBlockIds.has(f.block_id));
+    const validFloorIds = new Set(filteredFloors.map(f => f.id));
+    filteredRooms = rooms.filter(r => validFloorIds.has(r.floor_id));
+    const validRoomIds = new Set(filteredRooms.map(r => r.id));
+    filteredBeds = beds.filter(b => validRoomIds.has(b.room_id));
+    const validBedIds = new Set(filteredBeds.map(b => b.id));
+    filteredTenants = tenants.filter(t => validBedIds.has(t.bed_id));
+  } else if (userRole === 'blockIncharge') {
+    filteredBlocks = blocks.filter(b => b.block_incharge_id === userId);
+    const validBlockIds = new Set(filteredBlocks.map(b => b.id));
+    filteredFloors = floors.filter(f => validBlockIds.has(f.block_id));
+    const validFloorIds = new Set(filteredFloors.map(f => f.id));
+    filteredRooms = rooms.filter(r => validFloorIds.has(r.floor_id));
+    const validRoomIds = new Set(filteredRooms.map(r => r.id));
+    filteredBeds = beds.filter(b => validRoomIds.has(b.room_id));
+    const validBedIds = new Set(filteredBeds.map(b => b.id));
+    filteredTenants = tenants.filter(t => validBedIds.has(t.bed_id));
+  } else if (userRole === 'floorIncharge') {
+    filteredBlocks = []; // Can't see blocks
+    filteredFloors = floors.filter(f => f.incharge_id === userId);
+    const validFloorIds = new Set(filteredFloors.map(f => f.id));
+    filteredRooms = rooms.filter(r => validFloorIds.has(r.floor_id));
+    const validRoomIds = new Set(filteredRooms.map(r => r.id));
+    filteredBeds = beds.filter(b => validRoomIds.has(b.room_id));
+    const validBedIds = new Set(filteredBeds.map(b => b.id));
+    filteredTenants = tenants.filter(t => validBedIds.has(t.bed_id));
+  }
+
   return (
     <AppContext.Provider value={{
-      users, hostels, blocks, floors, rooms, beds, tenants, roles,
+      users, hostels, blocks: filteredBlocks, floors: filteredFloors, rooms: filteredRooms, beds: filteredBeds, tenants: filteredTenants, roles,
       globalSearch, setGlobalSearch,
-      addRecord, updateRecord, softDeleteRecord, addToast
+      addRecord, updateRecord, softDeleteRecord, addToast, userRole
     }}>
       {children}
       <div className="toast-container">

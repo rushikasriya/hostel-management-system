@@ -37,6 +37,7 @@ function App() {
       if (user && user.user_name) {
         localStorage.setItem('userName', user.user_name);
         localStorage.setItem('userId', user.user_id || user.id);
+        if (user.role_id) localStorage.setItem('roleId', user.role_id);
       }
       setIsAuthenticated(true);
       if (addToast) addToast(`Successfully logged in${user ? ` as ${user.user_name}` : ''}!`, 'success');
