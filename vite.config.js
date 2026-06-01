@@ -43,7 +43,11 @@ export default defineConfig({
       '/updateTenantDetails': { target: 'http://127.0.0.1:3000', changeOrigin: true },
       '/deleteTenant': { target: 'http://127.0.0.1:3000', changeOrigin: true },
       '/upload': { target: 'http://127.0.0.1:3000', changeOrigin: true },
-      '/uploads': { target: 'http://127.0.0.1:3000', changeOrigin: true }
+      '/uploads': { target: 'http://127.0.0.1:3000', changeOrigin: true },
+      '/getAttendance': { target: 'http://127.0.0.1:3000', changeOrigin: true },
+      '/addAttendance': { target: 'http://127.0.0.1:3000', changeOrigin: true },
+      '/resetPassword': { target: 'http://127.0.0.1:3000', changeOrigin: true },
+      '/getBedHistory': { target: 'http://127.0.0.1:3000', changeOrigin: true }
     }
   }
 })
