@@ -10,7 +10,7 @@ export const Blocks = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ block_name: '', hostel_id: '', manager_id: '', block_incharge_id: '', photo_url: '' });
+  const [formData, setFormData] = useState({ block_name: '', hostel_id: '', block_incharge_id: '', photo_url: '' });
 
   const hostelId = searchParams.get('hostel');
   const activeBlocks = (blocks || []).filter(b => !b.isDeleted);
@@ -46,14 +46,13 @@ export const Blocks = () => {
     }
     setIsModalOpen(false);
     setEditingId(null);
-    setFormData({ block_name: '', hostel_id: '', manager_id: '', block_incharge_id: '', photo_url: '' });
+    setFormData({ block_name: '', hostel_id: '', block_incharge_id: '', photo_url: '' });
   };
 
   const handleEdit = (block) => {
     setFormData({
       block_name: block.block_name || '',
       hostel_id: block.hostel_id || '',
-      manager_id: block.manager_id || '',
       block_incharge_id: block.block_incharge_id || '',
       photo_url: block.photo_url || ''
     });
@@ -69,7 +68,7 @@ export const Blocks = () => {
 
   const openAddModal = () => {
     setEditingId(null);
-    setFormData({ block_name: '', hostel_id: '', manager_id: '', block_incharge_id: '', photo_url: '' });
+    setFormData({ block_name: '', hostel_id: '', block_incharge_id: '', photo_url: '' });
     setIsModalOpen(true);
   };
 
@@ -218,13 +217,6 @@ export const Blocks = () => {
                   <select className="form-control" required value={formData.hostel_id} onChange={(e) => setFormData({...formData, hostel_id: e.target.value})}>
                     <option value="">Select Hostel</option>
                     {(hostels || []).map(h => <option key={h.id} value={h.id}>{h.hostel_name}</option>)}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Manager</label>
-                  <select className="form-control" required value={formData.manager_id} onChange={(e) => setFormData({...formData, manager_id: e.target.value})}>
-                    <option value="">Select Manager</option>
-                    {(users || []).filter(u => u.role_name === 'manager').map(u => <option key={u.user_id} value={u.user_id}>{u.user_name}</option>)}
                   </select>
                 </div>
                 <div className="form-group">

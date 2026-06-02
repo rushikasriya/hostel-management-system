@@ -117,7 +117,7 @@ export const HostelDetails = () => {
                     <Building size={24} className="text-primary" /> {block.block_name}
                   </h3>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>
-                    Manager: {getUserName(block.manager_id)} | Incharge: {getUserName(block.block_incharge_id)}
+                    Manager: {getUserName(hostels.find(h => h.id === hostelId)?.manager_id)} | Incharge: {getUserName(block.block_incharge_id)}
                   </p>
                 </div>
                 

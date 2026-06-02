@@ -4,11 +4,11 @@ import { Plus, Search, Building, MapPin, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Hostels = () => {
-  const { hostels, blocks, floors, rooms, beds, addToast, addRecord, updateRecord, softDeleteRecord } = useAppContext();
+  const { hostels, blocks, floors, rooms, beds, users, addToast, addRecord, updateRecord, softDeleteRecord } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ hostel_name: '', hostel_code: '', location_id: '', status: 'T', photo_url: '' });
+  const [formData, setFormData] = useState({ hostel_name: '', hostel_code: '', location_id: '', manager_id: '', status: 'T', photo_url: '' });
 
   const activeHostels = (hostels || []).filter(h => !h.isDeleted);
   const filteredHostels = activeHostels.filter(h => 
@@ -40,7 +40,7 @@ export const Hostels = () => {
     }
     setIsModalOpen(false);
     setEditingId(null);
-    setFormData({ hostel_name: '', hostel_code: '', location_id: '', status: 'T', photo_url: '' });
+    setFormData({ hostel_name: '', hostel_code: '', location_id: '', manager_id: '', status: 'T', photo_url: '' });
   };
 
   const handleEdit = (hostel) => {
@@ -48,6 +48,7 @@ export const Hostels = () => {
       hostel_name: hostel.hostel_name || '', 
       hostel_code: hostel.hostel_code || '', 
       location_id: hostel.location_id || '', 
+      manager_id: hostel.manager_id || '',
       status: hostel.status || 'T', 
       photo_url: hostel.photo_url || '' 
     });
@@ -63,7 +64,7 @@ export const Hostels = () => {
 
   const openAddModal = () => {
     setEditingId(null);
-    setFormData({ hostel_name: '', hostel_code: '', location_id: '', status: 'T', photo_url: '' });
+    setFormData({ hostel_name: '', hostel_code: '', location_id: '', manager_id: '', status: 'T', photo_url: '' });
     setIsModalOpen(true);
   };
 
@@ -186,6 +187,13 @@ export const Hostels = () => {
                 <div className="form-group">
                   <label className="form-label">Location ID</label>
                   <input type="number" className="form-control" required value={formData.location_id} onChange={(e) => setFormData({...formData, location_id: e.target.value})} placeholder="Enter location ID" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Manager</label>
+                  <select className="form-control" value={formData.manager_id} onChange={(e) => setFormData({...formData, manager_id: e.target.value})}>
+                    <option value="">Select Manager</option>
+                    {(users || []).filter(u => u.role_name === 'manager').map(u => <option key={u.user_id || u.id} value={u.user_id || u.id}>{u.user_name}</option>)}
+                  </select>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Status</label>
