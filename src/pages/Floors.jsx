@@ -278,10 +278,8 @@ export const Floors = () => {
                       .filter(u => {
                         if (!formData.block_id) return true;
                         const block = blocks?.find(b => b.id === Number(formData.block_id));
-                        if (!block) return true;
-                        const hostel = hostels?.find(h => h.id === block.hostel_id);
-                        if (!hostel || !hostel.manager_id) return true;
-                        return u.manager_id === hostel.manager_id;
+                        if (!block || !block.block_incharge_id) return true;
+                        return u.manager_id === block.block_incharge_id;
                       })
                       .map(u => <option key={u.user_id || u.id} value={u.user_id || u.id}>{u.user_name}</option>)}
                   </select>
