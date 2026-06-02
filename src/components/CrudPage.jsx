@@ -168,7 +168,7 @@ export const CrudPage = ({ entityType, title, columns }) => {
                 </button>
               </div>
               <div className="modal-body form-grid">
-                {columns.filter(col => !col.hideInForm).map(col => (
+                {columns.filter(col => typeof col.hideInForm === 'function' ? !col.hideInForm(formData) : !col.hideInForm).map(col => (
                   <div className={`form-group ${col.type === 'file' || col.type === 'textarea' ? 'full-width' : ''}`} key={col.key}>
                     <label className="form-label">{col.label}</label>
                     {col.type === 'select' ? (

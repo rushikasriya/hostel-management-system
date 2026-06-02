@@ -73,7 +73,11 @@ function App() {
       label: 'Reports To (Manager)', 
       type: 'select', 
       options: (users || []).filter(u => u.role_name === 'manager').map(u => ({ label: u.user_name, value: u.user_id })),
-      hideInTable: true 
+      hideInTable: true,
+      hideInForm: (formData) => {
+        const role = roles?.find(r => r.id === Number(formData.role_id));
+        return !role || !['blockIncharge', 'floorIncharge'].includes(role.role_name);
+      }
     },
     { 
       key: 'status', 
