@@ -39,7 +39,7 @@ export const AppProvider = ({ children }) => {
     fetch('/getUsers')
       .then(res => res.json())
       .then(data => {
-        const mappedUsers = data.map(u => ({ ...u, id: u.user_id || u.id }));
+        const mappedUsers = data.map(u => ({ ...u, id: u.user_id || u.id, isDeleted: u.status === 'F' }));
         setUsers(mappedUsers);
       })
       .catch(err => console.error("Failed to load users:", err));
@@ -50,7 +50,7 @@ export const AppProvider = ({ children }) => {
     fetch('/getHostels')
       .then(res => res.json())
       .then(data => {
-        const mappedHostels = data.map(h => ({ ...h, id: h.id || h.hostel_id }));
+        const mappedHostels = data.map(h => ({ ...h, id: h.id || h.hostel_id, isDeleted: h.status === 'F' }));
         setHostels(mappedHostels);
       })
       .catch(err => console.error("Failed to load hostels:", err));
@@ -92,7 +92,7 @@ export const AppProvider = ({ children }) => {
     const res = await fetch(url);
     const data = await res.json();
     if (Array.isArray(data)) {
-      setter(data.map(item => ({ ...item, id: item.id || item[idKey] })));
+      setter(data.map(item => ({ ...item, id: item.id || item[idKey], isDeleted: item.status === 'F' })));
     } else {
       console.error(`Expected array from ${url} but got:`, data);
     }
