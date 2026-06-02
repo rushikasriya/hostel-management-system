@@ -231,7 +231,27 @@ def delete_user(user_id: int):
     db.close()
     if cursor.rowcount == 0:
         raise HTTPException(status_code=404, detail="User not found")
-    return {"message": "User deleted successfully"}
+    return {"message": "User deactivated successfully"}
+
+@app.delete("/hardDeleteUser/{user_id}")
+def hard_delete_user(user_id: int):
+    db = localhost()
+    cursor = db.cursor()
+    
+    # We must also clear references to this user_id in other tables (hostels, blocks, floors) 
+    # to avoid foreign key / UI mapping errors.
+    cursor.execute("UPDATE users SET manager_id = NULL WHERE manager_id = %s", (user_id,))
+    cursor.execute("UPDATE hostels SET manager_id = NULL WHERE manager_id = %s", (user_id,))
+    cursor.execute("UPDATE blocks SET block_incharge_id = NULL WHERE block_incharge_id = %s", (user_id,))
+    cursor.execute("UPDATE floors SET incharge_id = NULL WHERE incharge_id = %s", (user_id,))
+    
+    query = "DELETE FROM users WHERE user_id = %s"
+    cursor.execute(query, (user_id,))
+    db.commit()
+    db.close()
+    if cursor.rowcount == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "User permanently deleted successfully"}
 
 @app.get("/getRoles")
 def get_roles():

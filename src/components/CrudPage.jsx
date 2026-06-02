@@ -141,12 +141,28 @@ export const CrudPage = ({ entityType, title, columns }) => {
                     ))}
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                        <button className="btn-icon" onClick={() => handleOpenModal(item)}>
+                        <button className="btn-icon" onClick={() => handleOpenModal(item)} title="Edit">
                           <Edit2 size={16} />
                         </button>
-                        <button className="btn-icon" style={{ color: 'var(--danger-color)' }} onClick={() => handleDelete(item.id)}>
-                          <Trash2 size={16} />
-                        </button>
+                        {entityType === 'users' && (
+                          <button 
+                            className="btn-icon" 
+                            style={{ color: 'var(--danger-color)' }} 
+                            onClick={() => {
+                              if (window.confirm('WARNING: Hard Delete will permanently remove this user and clear their assignments from all hostels, blocks, and floors.\n\nAre you sure you want to proceed?')) {
+                                context.hardDeleteRecord(entityType, item.id || item.user_id);
+                              }
+                            }}
+                            title="Hard Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                        {entityType !== 'users' && (
+                          <button className="btn-icon" style={{ color: 'var(--danger-color)' }} onClick={() => handleDelete(item.id || item.user_id)} title="Soft Delete">
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

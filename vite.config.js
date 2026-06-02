@@ -17,6 +17,7 @@ export default defineConfig({
       '/usersList': { target: 'http://127.0.0.1:3000', changeOrigin: true },
       '/updateUser': { target: 'http://127.0.0.1:3000', changeOrigin: true },
       '/deactivateUser': { target: 'http://127.0.0.1:3000', changeOrigin: true },
+      '/hardDeleteUser': { target: 'http://127.0.0.1:3000', changeOrigin: true },
       '/addHostel': { target: 'http://127.0.0.1:3000', changeOrigin: true },
       '/getHostels': { target: 'http://127.0.0.1:3000', changeOrigin: true },
       '/getHostelDetails': { target: 'http://127.0.0.1:3000', changeOrigin: true },

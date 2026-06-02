@@ -210,9 +210,21 @@ export const AppProvider = ({ children }) => {
         await handleApiAction(`/deleteTenant/${id}`, 'DELETE');
         await reloadData('/getTenants', setTenants, 'tenant_id');
       }
-      addToast(`Item deleted successfully!`);
+      addToast('Item deleted successfully!', 'success');
     } catch (err) {
       addToast(`Failed to delete: ${err.message}`, 'error');
+    }
+  };
+
+  const hardDeleteRecord = async (entityType, id) => {
+    try {
+      if (entityType === 'users') {
+        await handleApiAction(`/hardDeleteUser/${id}`, 'DELETE');
+        await reloadData('/getUsers', setUsers, 'user_id');
+      }
+      addToast('User permanently deleted!', 'success');
+    } catch (err) {
+      addToast(`Failed to hard delete: ${err.message}`, 'error');
     }
   };
 
@@ -265,7 +277,7 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider value={{
       users, hostels: filteredHostels, blocks: filteredBlocks, floors: filteredFloors, rooms: filteredRooms, beds: filteredBeds, tenants: filteredTenants, roles,
       globalSearch, setGlobalSearch,
-      addRecord, updateRecord, softDeleteRecord, addToast, userRole
+      addRecord, updateRecord, softDeleteRecord, hardDeleteRecord, addToast, userRole
     }}>
       {children}
       <div className="toast-container">
