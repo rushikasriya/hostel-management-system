@@ -99,6 +99,13 @@ function App() {
     { key: 'hostel_code', label: 'Hostel Code', hideInForm: true },
     { key: 'location_id', label: 'Location ID', type: 'number' },
     { 
+      key: 'manager_id', 
+      label: 'Manager', 
+      type: 'select',
+      options: (users || []).filter(u => u.role_name === 'manager').map(u => ({ label: u.user_name, value: u.user_id })),
+      render: (val) => getUserName(val) 
+    },
+    { 
       key: 'status', 
       label: 'Status', 
       type: 'select', 
@@ -132,13 +139,6 @@ function App() {
       type: 'select',
       options: (hostels || []).map(h => ({ label: h.hostel_name, value: h.id })),
       render: (val) => getHostelName(val) 
-    },
-    { 
-      key: 'manager_id', 
-      label: 'Manager', 
-      type: 'select',
-      options: (users || []).filter(u => u.role_name === 'manager').map(u => ({ label: u.user_name, value: u.user_id })),
-      render: (val) => getUserName(val) 
     },
     { 
       key: 'block_incharge_id', 
@@ -225,12 +225,13 @@ function App() {
         const room = rooms?.find(r => r.id === bed?.room_id);
         const floor = floors?.find(f => f.id === room?.floor_id);
         const block = blocks?.find(b => b.id === floor?.block_id);
+        const hostel = hostels?.find(h => h.id === block?.hostel_id);
         
         return (
           <div style={{ fontSize: '12px', lineHeight: '1.5' }}>
             <div style={{ display: 'flex', gap: '4px' }}>
               <span style={{ color: 'var(--text-secondary)' }}>Manager:</span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{getUserName(block?.manager_id)}</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{getUserName(hostel?.manager_id)}</span>
             </div>
             <div style={{ display: 'flex', gap: '4px' }}>
               <span style={{ color: 'var(--text-secondary)' }}>Block Inc:</span>

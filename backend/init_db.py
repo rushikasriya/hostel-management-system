@@ -23,7 +23,6 @@ def init_db():
       id SERIAL PRIMARY KEY,
       hostel_id INTEGER DEFAULT NULL,
       block_name TEXT NOT NULL,
-      manager_id INTEGER DEFAULT NULL,
       block_incharge_id INTEGER DEFAULT NULL,
       photo_url TEXT DEFAULT NULL
     );
@@ -41,6 +40,7 @@ def init_db():
       hostel_name TEXT DEFAULT NULL,
       hostel_code TEXT DEFAULT NULL,
       location_id INTEGER DEFAULT NULL,
+      manager_id INTEGER DEFAULT NULL,
       status TEXT DEFAULT NULL,
       photo_url TEXT DEFAULT NULL
     );

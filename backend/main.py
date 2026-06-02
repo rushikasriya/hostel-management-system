@@ -57,13 +57,13 @@ class Hostel(BaseModel):
     hostel_name: str | None = None
     hostel_code: str | None = None
     location_id: int | None = None
+    manager_id: int | None = None
     status: str | None = None
 
 class Block(BaseModel):
     photo_url: str | None = None
     hostel_id: int | None = None
     block_name: str
-    manager_id: int | None = None
     block_incharge_id: int | None = None
 
 class Floor(BaseModel):
@@ -254,8 +254,8 @@ def create_hostel(hostel: Hostel):
     if not h_code and hostel.hostel_name:
         h_code = "".join([word[0].upper() for word in hostel.hostel_name.split() if word])
         
-    query = "INSERT INTO hostels (hostel_name, hostel_code, location_id, status, photo_url) VALUES (%s, %s, %s, %s, %s)"
-    values = (hostel.hostel_name, h_code, hostel.location_id, 'T', hostel.photo_url)
+    query = "INSERT INTO hostels (hostel_name, hostel_code, location_id, manager_id, status, photo_url) VALUES (%s, %s, %s, %s, %s, %s)"
+    values = (hostel.hostel_name, h_code, hostel.location_id, hostel.manager_id, 'T', hostel.photo_url)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -292,8 +292,8 @@ def update_hostel(id: int, hostel: Hostel):
     if not h_code and hostel.hostel_name:
         h_code = "".join([word[0].upper() for word in hostel.hostel_name.split() if word])
         
-    query = "UPDATE hostels SET hostel_name = %s, hostel_code = %s, location_id = %s, status = %s, photo_url = %s WHERE id = %s"
-    values = (hostel.hostel_name, h_code, hostel.location_id, hostel.status, hostel.photo_url, id)
+    query = "UPDATE hostels SET hostel_name = %s, hostel_code = %s, location_id = %s, manager_id = %s, status = %s, photo_url = %s WHERE id = %s"
+    values = (hostel.hostel_name, h_code, hostel.location_id, hostel.manager_id, hostel.status, hostel.photo_url, id)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -321,7 +321,8 @@ def get_full_hostel_details(hostelId: int):
     conn = localhost()
     cursor = conn.cursor()
     try:
-        query = f"""SELECT h.id AS hostelId, h.hostel_name, h.location_id, b.id as blockId, b.block_name, u1.user_name AS manager,
+        query = f"""SELECT h.id AS hostelId, h.hostel_name, h.location_id, u0.user_name AS manager,
+                b.id as blockId, b.block_name, 
                 f.id as floorId, f.floor_name, u2.user_name AS floorIncharge, r.id as roomId, r.room_no, bd.id as bedId, 
                 bd.bed_no, bd.status, 
                 t.tenant_name, t.phone, t.emergency_phone, t.designation, t.address, t.fee, t.joining_date FROM hostels h
@@ -331,7 +332,9 @@ def get_full_hostel_details(hostelId: int):
                 LEFT JOIN users u2 ON u2.user_id = f.incharge_id
                 JOIN rooms r ON f.id = r.floor_id
                 JOIN beds bd ON r.id = bd.room_id
-                JOIN tenants t ON bd.id = t.bed_id WHERE h.id = {hostelId};"""
+                JOIN tenants t ON bd.id = t.bed_id 
+                LEFT JOIN users u0 ON h.manager_id = u0.user_id
+                WHERE h.id = {hostelId};"""
         cursor.execute(query)
         results = cursor.fetchall()
         
@@ -393,8 +396,8 @@ def create_block(block: Block):
             if not block.block_name.startswith(prefix):
                 block.block_name = f"{h_row['hostel_code']}-{block.block_name}"
 
-    query = "INSERT INTO blocks (hostel_id, block_name, manager_id, block_incharge_id, photo_url) VALUES (%s, %s, %s, %s, %s)"
-    values = (block.hostel_id, block.block_name, block.manager_id, block.block_incharge_id, block.photo_url)
+    query = "INSERT INTO blocks (hostel_id, block_name, block_incharge_id, photo_url) VALUES (%s, %s, %s, %s)"
+    values = (block.hostel_id, block.block_name, block.block_incharge_id, block.photo_url)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -426,8 +429,8 @@ def get_block(id: int):
 def update_block(id: int, block: Block):
     db = localhost()
     cursor = db.cursor()
-    query = "UPDATE blocks SET hostel_id = %s, block_name = %s, manager_id = %s, block_incharge_id = %s, photo_url = %s WHERE id = %s"
-    values = (block.hostel_id, block.block_name, block.manager_id, block.block_incharge_id, block.photo_url, id)
+    query = "UPDATE blocks SET hostel_id = %s, block_name = %s, block_incharge_id = %s, photo_url = %s WHERE id = %s"
+    values = (block.hostel_id, block.block_name, block.block_incharge_id, block.photo_url, id)
     cursor.execute(query, values)
     db.commit()
     db.close()

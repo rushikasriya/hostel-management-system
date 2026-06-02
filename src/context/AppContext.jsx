@@ -107,11 +107,11 @@ export const AppProvider = ({ children }) => {
         await reloadData('/getUsers', setUsers, 'user_id');
       } else if (entityType === 'hostels') {
         record.location_id = record.location_id ? parseInt(record.location_id, 10) : null;
+        record.manager_id = record.manager_id ? parseInt(record.manager_id, 10) : null;
         await handleApiAction('/addHostel', 'POST', record);
         await reloadData('/getHostels', setHostels, 'hostel_id');
       } else if (entityType === 'blocks') {
         record.hostel_id = record.hostel_id ? parseInt(record.hostel_id, 10) : null;
-        record.manager_id = record.manager_id ? parseInt(record.manager_id, 10) : null;
         record.block_incharge_id = record.block_incharge_id ? parseInt(record.block_incharge_id, 10) : null;
         await handleApiAction('/addBlocks', 'POST', record);
         await reloadData('/getBlocks', setBlocks, 'block_id');
@@ -149,11 +149,11 @@ export const AppProvider = ({ children }) => {
         await reloadData('/getUsers', setUsers, 'user_id');
       } else if (entityType === 'hostels') {
         updatedRecord.location_id = updatedRecord.location_id ? parseInt(updatedRecord.location_id, 10) : null;
+        updatedRecord.manager_id = updatedRecord.manager_id ? parseInt(updatedRecord.manager_id, 10) : null;
         await handleApiAction(`/updateHostelDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
         await reloadData('/getHostels', setHostels, 'hostel_id');
       } else if (entityType === 'blocks') {
         updatedRecord.hostel_id = updatedRecord.hostel_id ? parseInt(updatedRecord.hostel_id, 10) : null;
-        updatedRecord.manager_id = updatedRecord.manager_id ? parseInt(updatedRecord.manager_id, 10) : null;
         updatedRecord.block_incharge_id = updatedRecord.block_incharge_id ? parseInt(updatedRecord.block_incharge_id, 10) : null;
         await handleApiAction(`/updateBlockDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
         await reloadData('/getBlocks', setBlocks, 'block_id');
@@ -217,6 +217,7 @@ export const AppProvider = ({ children }) => {
   const userRole = roles.find(r => r.id === userRoleId)?.role_name || '';
 
   // Apply Role-Based Data Restrictions
+  let filteredHostels = hostels;
   let filteredBlocks = blocks;
   let filteredFloors = floors;
   let filteredRooms = rooms;
@@ -224,7 +225,9 @@ export const AppProvider = ({ children }) => {
   let filteredTenants = tenants;
 
   if (userRole === 'manager') {
-    filteredBlocks = blocks.filter(b => b.manager_id === userId);
+    filteredHostels = hostels.filter(h => h.manager_id === userId);
+    const validHostelIds = new Set(filteredHostels.map(h => h.id));
+    filteredBlocks = blocks.filter(b => validHostelIds.has(b.hostel_id));
     const validBlockIds = new Set(filteredBlocks.map(b => b.id));
     filteredFloors = floors.filter(f => validBlockIds.has(f.block_id));
     const validFloorIds = new Set(filteredFloors.map(f => f.id));
@@ -256,7 +259,7 @@ export const AppProvider = ({ children }) => {
 
   return (
     <AppContext.Provider value={{
-      users, hostels, blocks: filteredBlocks, floors: filteredFloors, rooms: filteredRooms, beds: filteredBeds, tenants: filteredTenants, roles,
+      users, hostels: filteredHostels, blocks: filteredBlocks, floors: filteredFloors, rooms: filteredRooms, beds: filteredBeds, tenants: filteredTenants, roles,
       globalSearch, setGlobalSearch,
       addRecord, updateRecord, softDeleteRecord, addToast, userRole
     }}>
