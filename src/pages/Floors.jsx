@@ -273,7 +273,17 @@ export const Floors = () => {
                   <label className="form-label">Floor Incharge</label>
                   <select className="form-control" required value={formData.incharge_id} onChange={(e) => setFormData({...formData, incharge_id: e.target.value})}>
                     <option value="">Select Incharge</option>
-                    {(users || []).filter(u => u.role_name === 'floorIncharge').map(u => <option key={u.user_id} value={u.user_id}>{u.user_name}</option>)}
+                    {(users || [])
+                      .filter(u => u.role_name === 'floorIncharge')
+                      .filter(u => {
+                        if (!formData.block_id) return true;
+                        const block = blocks?.find(b => b.id === Number(formData.block_id));
+                        if (!block) return true;
+                        const hostel = hostels?.find(h => h.id === block.hostel_id);
+                        if (!hostel || !hostel.manager_id) return true;
+                        return u.manager_id === hostel.manager_id;
+                      })
+                      .map(u => <option key={u.user_id || u.id} value={u.user_id || u.id}>{u.user_name}</option>)}
                   </select>
                 </div>
                 <div className="form-group full-width">

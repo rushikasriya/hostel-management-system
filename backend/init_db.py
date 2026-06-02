@@ -82,6 +82,7 @@ def init_db():
       contact_no TEXT DEFAULT NULL,
       address TEXT,
       role_id INTEGER DEFAULT NULL,
+      manager_id INTEGER DEFAULT NULL,
       email_id TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL,
       status TEXT DEFAULT NULL,

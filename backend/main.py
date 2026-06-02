@@ -40,6 +40,7 @@ class User(BaseModel):
     contact_no: str | None = None
     address: str | None = None
     role_id: int | None = None
+    manager_id: int | None = None
     email_id: EmailStr
     password: str | None = "123456"
     status: str | None = "T"
@@ -174,10 +175,10 @@ def create_user(user: User):
     cursor = db.cursor()
     default_password = 123456
     query = """
-    INSERT INTO users (user_name, contact_no, address, role_id, email_id, password, status, photo_url)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO users (user_name, contact_no, address, role_id, manager_id, email_id, password, status, photo_url)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
-    values = (user.user_name, user.contact_no, user.address, user.role_id, user.email_id, default_password, user.status, user.photo_url)
+    values = (user.user_name, user.contact_no, user.address, user.role_id, user.manager_id, user.email_id, default_password, user.status, user.photo_url)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -187,7 +188,7 @@ def create_user(user: User):
 def get_users():
     db = localhost()
     cursor = db.cursor()
-    query = """SELECT u.user_id, u.user_name, u.contact_no, u.address, u.email_id, u.role_id, r.role_name, u.status, u.photo_url 
+    query = """SELECT u.user_id, u.user_name, u.contact_no, u.address, u.email_id, u.role_id, r.role_name, u.manager_id, u.status, u.photo_url 
                FROM users u JOIN roles r ON r.id = u.role_id"""
     cursor.execute(query)
     users = cursor.fetchall()
@@ -198,7 +199,7 @@ def get_users():
 def get_user(user_id: int):
     db = localhost()
     cursor = db.cursor()
-    query = """SELECT u.user_id, u.user_name, u.contact_no, u.address, u.email_id, u.role_id, r.role_name, u.status, u.photo_url 
+    query = """SELECT u.user_id, u.user_name, u.contact_no, u.address, u.email_id, u.role_id, r.role_name, u.manager_id, u.status, u.photo_url 
                FROM users u JOIN roles r ON r.id = u.role_id WHERE user_id = %s"""
     cursor.execute(query, (user_id,))
     user = cursor.fetchone()
@@ -211,8 +212,8 @@ def get_user(user_id: int):
 def update_user(user_id: int, user: User):
     db = localhost()
     cursor = db.cursor()
-    query = """UPDATE users SET user_name = %s, contact_no = %s, address = %s, role_id = %s, email_id = %s, status = %s, photo_url = %s WHERE user_id = %s"""
-    values = (user.user_name, user.contact_no, user.address, user.role_id, user.email_id, user.status, user.photo_url, user_id)
+    query = """UPDATE users SET user_name = %s, contact_no = %s, address = %s, role_id = %s, manager_id = %s, email_id = %s, status = %s, photo_url = %s WHERE user_id = %s"""
+    values = (user.user_name, user.contact_no, user.address, user.role_id, user.manager_id, user.email_id, user.status, user.photo_url, user_id)
     cursor.execute(query, values)
     db.commit()
     db.close()

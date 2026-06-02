@@ -103,6 +103,8 @@ export const AppProvider = ({ children }) => {
       if (entityType === 'users') {
         if (record.role_id) record.role_id = parseInt(record.role_id, 10);
         else record.role_id = null;
+        if (record.manager_id) record.manager_id = parseInt(record.manager_id, 10);
+        else record.manager_id = null;
         await handleApiAction('/addUser', 'POST', record);
         await reloadData('/getUsers', setUsers, 'user_id');
       } else if (entityType === 'hostels') {
@@ -145,6 +147,8 @@ export const AppProvider = ({ children }) => {
       if (entityType === 'users') {
         if (updatedRecord.role_id) updatedRecord.role_id = parseInt(updatedRecord.role_id, 10);
         else updatedRecord.role_id = null;
+        if (updatedRecord.manager_id) updatedRecord.manager_id = parseInt(updatedRecord.manager_id, 10);
+        else updatedRecord.manager_id = null;
         await handleApiAction(`/updateUser/${updatedRecord.id}`, 'PUT', updatedRecord);
         await reloadData('/getUsers', setUsers, 'user_id');
       } else if (entityType === 'hostels') {

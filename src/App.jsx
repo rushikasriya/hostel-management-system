@@ -69,6 +69,13 @@ function App() {
       hideInTable: true 
     },
     { 
+      key: 'manager_id', 
+      label: 'Reports To (Manager)', 
+      type: 'select', 
+      options: (users || []).filter(u => u.role_name === 'manager').map(u => ({ label: u.user_name, value: u.user_id })),
+      hideInTable: true 
+    },
+    { 
       key: 'status', 
       label: 'Status', 
       type: 'select', 
