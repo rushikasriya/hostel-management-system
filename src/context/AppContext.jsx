@@ -10,7 +10,7 @@ const generateId = () => Math.random().toString(36).substr(2, 9);
 export const AppProvider = ({ children }) => {
   // Initial state logic from local storage or default empty array
   const loadInitialData = (key) => {
-    const saved = localStorage.getItem(key);
+    const saved = sessionStorage.getItem(key);
     if (saved) return JSON.parse(saved);
     return [];
   };
@@ -228,8 +228,8 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const userId = parseInt(localStorage.getItem('userId'), 10);
-  const userRoleId = parseInt(localStorage.getItem('roleId'), 10);
+  const userId = parseInt(sessionStorage.getItem('userId'), 10);
+  const userRoleId = parseInt(sessionStorage.getItem('roleId'), 10);
   const userRole = roles.find(r => r.id === userRoleId)?.role_name || '';
 
   // Apply Role-Based Data Restrictions

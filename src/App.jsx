@@ -20,12 +20,12 @@ import { useAppContext } from './context/AppContext';
 
 function App() {
   const { roles, users, hostels, blocks, floors, rooms, beds, addToast } = useAppContext();
-  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('auth') === 'true');
+  const [isAuthenticated, setIsAuthenticated] = useState(sessionStorage.getItem('auth') === 'true');
 
   React.useEffect(() => {
-    if (isAuthenticated && (!localStorage.getItem('userName') || !localStorage.getItem('userId'))) {
+    if (isAuthenticated && (!sessionStorage.getItem('userName') || !sessionStorage.getItem('userId'))) {
       // Force logout for old sessions without a saved userName or userId
-      localStorage.removeItem('auth');
+      sessionStorage.removeItem('auth');
       setIsAuthenticated(false);
       if (addToast) addToast('Session updated. Please log in again.', 'success');
     }
@@ -33,11 +33,11 @@ function App() {
 
   if (!isAuthenticated) {
     return <Login onLogin={(user) => {
-      localStorage.setItem('auth', 'true');
+      sessionStorage.setItem('auth', 'true');
       if (user && user.user_name) {
-        localStorage.setItem('userName', user.user_name);
-        localStorage.setItem('userId', user.user_id || user.id);
-        if (user.role_id) localStorage.setItem('roleId', user.role_id);
+        sessionStorage.setItem('userName', user.user_name);
+        sessionStorage.setItem('userId', user.user_id || user.id);
+        if (user.role_id) sessionStorage.setItem('roleId', user.role_id);
       }
       setIsAuthenticated(true);
       if (addToast) addToast(`Successfully logged in${user ? ` as ${user.user_name}` : ''}!`, 'success');

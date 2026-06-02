@@ -16,7 +16,7 @@ export const Settings = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedId = localStorage.getItem('userId');
+    const storedId = sessionStorage.getItem('userId');
     if (storedId) {
       setUserId(Number(storedId));
       const user = users?.find(u => u.user_id === Number(storedId) || u.id === Number(storedId));
@@ -66,7 +66,7 @@ export const Settings = () => {
     const updateData = { ...originalUser, ...formData, id: userId };
     
     updateRecord('users', updateData);
-    localStorage.setItem('userName', formData.user_name);
+    sessionStorage.setItem('userName', formData.user_name);
     addToast('Profile updated successfully!', 'success');
   };
 

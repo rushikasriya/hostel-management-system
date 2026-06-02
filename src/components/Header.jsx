@@ -37,10 +37,10 @@ export const Header = () => {
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderLeft: '1px solid var(--surface-border)', paddingLeft: '20px' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '18px' }}>
-            {(localStorage.getItem('userName') || 'A')[0].toUpperCase()}
+            {(sessionStorage.getItem('userName') || 'A')[0].toUpperCase()}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{localStorage.getItem('userName') || 'Admin'}</span>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{sessionStorage.getItem('userName') || 'Admin'}</span>
             <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Super Admin</span>
           </div>
         </div>
@@ -48,7 +48,7 @@ export const Header = () => {
         <button 
           className="btn-icon" 
           title="Logout" 
-          onClick={() => { localStorage.removeItem('auth'); window.location.reload(); }}
+          onClick={() => { sessionStorage.clear(); window.location.reload(); }}
           style={{ color: 'var(--danger-color)', marginLeft: '12px' }}
         >
           <LogOut size={20} />

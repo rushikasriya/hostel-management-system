@@ -100,7 +100,7 @@ export const Dashboard = () => {
         boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.4)'
       }}>
         <div>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '8px', color: 'white' }}>Welcome back, {localStorage.getItem('userName') || 'Admin'}! 👋</h1>
+          <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '8px', color: 'white' }}>Welcome back, {sessionStorage.getItem('userName') || 'Admin'}! 👋</h1>
           <p style={{ fontSize: '15px', opacity: 0.9, margin: 0, fontWeight: 500 }}>Here's an overview of your hostel operations today.</p>
         </div>
         <div style={{ 
