@@ -81,7 +81,7 @@ export const Dashboard = () => {
     { label: 'Occupied Beds', value: occupiedBedsCount, icon: <Users size={24} />, color: '#F59E0B', bg: '#FFFBEB' },
     { label: 'Vacant Beds', value: vacantBedsCount, icon: <BedDouble size={24} />, color: '#F59E0B', bg: '#FFFBEB' },
     { label: 'Active Tenants', value: getActiveCount(tenants), icon: <UserCheck size={24} />, color: '#10B981', bg: '#ECFDF5' },
-    { label: 'Pending Payments', value: '₹45,000', icon: <CreditCard size={24} />, color: '#EF4444', bg: '#FEF2F2' },
+    { label: 'Pending Payments', value: '₹0', icon: <CreditCard size={24} />, color: '#EF4444', bg: '#FEF2F2' },
   ];
 
   return (
