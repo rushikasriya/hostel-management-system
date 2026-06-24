@@ -28,3 +28,6 @@ dist-ssr
 .env.*
 !.env.example
 
+# Database backups
+hostel_db_backup.*
+
