@@ -4,7 +4,8 @@ import os
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+base_dir = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(base_dir, ".env"))
 
 # Cloudinary Configuration
 CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")

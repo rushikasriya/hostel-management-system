@@ -7,7 +7,7 @@ def init_db():
 
     # Drop existing tables if they exist to start fresh
     cursor.execute("""
-    DROP TABLE IF EXISTS beds, blocks, floors, hostels, locations, roles, rooms, tenants, users CASCADE;
+    DROP TABLE IF EXISTS beds, blocks, floors, hostels, locations, roles, rooms, tenants, users, bed_history, attendance CASCADE;
     """)
 
     cursor.execute("""
@@ -87,6 +87,25 @@ def init_db():
       password TEXT NOT NULL,
       status TEXT DEFAULT NULL,
       photo_url TEXT DEFAULT NULL
+    );
+
+    CREATE TABLE bed_history (
+      id SERIAL PRIMARY KEY,
+      bed_id INTEGER NOT NULL,
+      tenant_id INTEGER DEFAULT NULL,
+      action TEXT NOT NULL,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE attendance (
+      id SERIAL PRIMARY KEY,
+      tenant_id INTEGER NOT NULL,
+      attendance_date DATE NOT NULL,
+      status TEXT NOT NULL,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(tenant_id, attendance_date)
     );
     """)
 
