@@ -354,6 +354,31 @@ def create_organization(org: Organization):
     db.close()
     return {"message": "Organization created successfully"}
 
+@app.put("/updateOrganization/{id}")
+def update_organization(id: int, org: Organization):
+    db = localhost()
+    cursor = db.cursor()
+    query = "UPDATE organizations SET name = %s, code = %s, status = %s, photo_url = %s WHERE id = %s"
+    values = (org.name, org.code, org.status, org.photo_url, id)
+    cursor.execute(query, values)
+    db.commit()
+    db.close()
+    if cursor.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    return {"message": "Organization updated successfully"}
+
+@app.delete("/deleteOrganization/{id}")
+def delete_organization(id: int):
+    db = localhost()
+    cursor = db.cursor()
+    query = "UPDATE organizations SET status = 'F' WHERE id = %s"
+    cursor.execute(query, (id,))
+    db.commit()
+    db.close()
+    if cursor.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    return {"message": "Organization deleted successfully"}
+
 @app.delete("/updateHostelStatus/{id}")
 def delete_hostel(id: int):
     db = localhost()

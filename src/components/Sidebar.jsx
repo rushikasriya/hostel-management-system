@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Home, Layers, Box, DoorOpen, BedDouble, UserCheck, Settings, CreditCard, FileText, AlertCircle, CalendarCheck } from 'lucide-react';
+import { LayoutDashboard, Users, Home, Layers, Box, DoorOpen, BedDouble, UserCheck, Settings, CreditCard, FileText, AlertCircle, CalendarCheck, Building } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 export const Sidebar = () => {
@@ -9,6 +9,7 @@ export const Sidebar = () => {
   const navItems = [
     { path: '/', name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { path: '/users', name: 'Users', icon: <Users size={20} /> },
+    { path: '/organizations', name: 'Organizations', icon: <Building size={20} /> },
     { path: '/hostels', name: 'Hostels', icon: <Home size={20} /> },
     { path: '/blocks', name: 'Blocks', icon: <Layers size={20} /> },
     { path: '/floors', name: 'Floors', icon: <Box size={20} /> },
@@ -19,6 +20,9 @@ export const Sidebar = () => {
     { path: '/tickets', name: 'Tickets', icon: <AlertCircle size={20} /> },
     { path: '/settings', name: 'Settings', icon: <Settings size={20} /> },
   ].filter(item => {
+    if (item.name === 'Organizations' && userRole !== 'superAdmin') {
+      return false;
+    }
     if (userRole === 'manager') {
       return item.name !== 'Users';
     } else if (userRole === 'blockIncharge') {

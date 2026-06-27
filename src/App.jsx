@@ -19,7 +19,7 @@ import { ExternalLink } from 'lucide-react';
 import { useAppContext } from './context/AppContext';
 
 function App() {
-  const { roles, users, hostels, blocks, floors, rooms, beds, addToast, isAuthenticated, setIsAuthenticated, currentUser, setCurrentUser } = useAppContext();
+  const { roles, users, hostels, blocks, floors, rooms, beds, addToast, isAuthenticated, setIsAuthenticated, currentUser, setCurrentUser, organizations, userRole } = useAppContext();
 
   React.useEffect(() => {
     if (isAuthenticated && (!sessionStorage.getItem('userName') || !sessionStorage.getItem('userId'))) {
@@ -63,6 +63,16 @@ function App() {
   const getBedName = (id) => beds?.find(b => b.id === id)?.bed_no || id;
 
   const userColumns = [
+    {
+      key: 'organization_id',
+      label: 'Organization',
+      type: 'select',
+      defaultValue: 1,
+      options: (organizations || []).map(o => ({ label: o.name, value: o.id })),
+      render: (val) => organizations.find(o => o.id === val)?.name || 'Chetana Hostels',
+      hideInForm: userRole !== 'superAdmin',
+      hideInTable: userRole !== 'superAdmin'
+    },
     { key: 'user_name', label: 'User Name' },
     { key: 'email_id', label: 'Email', type: 'email' },
     { key: 'contact_no', label: 'Contact No' },
@@ -121,6 +131,16 @@ function App() {
   ];
 
   const hostelColumns = [
+    {
+      key: 'organization_id',
+      label: 'Organization',
+      type: 'select',
+      defaultValue: 1,
+      options: (organizations || []).map(o => ({ label: o.name, value: o.id })),
+      render: (val) => organizations.find(o => o.id === val)?.name || 'Chetana Hostels',
+      hideInForm: userRole !== 'superAdmin',
+      hideInTable: userRole !== 'superAdmin'
+    },
     { key: 'hostel_name', label: 'Hostel Name' },
     { key: 'hostel_code', label: 'Hostel Code', hideInForm: true },
     { key: 'location_id', label: 'Location ID', type: 'number' },
@@ -287,6 +307,35 @@ function App() {
     }
   ];
 
+  const organizationColumns = [
+    { key: 'name', label: 'Organization Name' },
+    { key: 'code', label: 'Organization Code' },
+    { 
+      key: 'status', 
+      label: 'Status', 
+      type: 'select', 
+      defaultValue: 'T',
+      options: [{label: 'Active', value: 'T'}, {label: 'Inactive', value: 'F'}],
+      render: (val) => (
+        <span className={`badge ${val === 'T' ? 'badge-active' : 'badge-inactive'}`}>
+          {val === 'T' ? 'Active' : 'Inactive'}
+        </span>
+      )
+    },
+    { 
+      key: 'photo_url', 
+      label: 'Logo', 
+      type: 'file', 
+      render: (val, item) => (
+        <img 
+          src={val || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name || 'Org')}&background=random`} 
+          alt="Organization" 
+          style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--surface-border)' }} 
+        />
+      )
+    }
+  ];
+
   return (
     <div className="app-container">
       <Sidebar />
@@ -296,6 +345,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/hostel-details/:id" element={<HostelDetails />} />
           <Route path="/users" element={<CrudPage entityType="users" title="Users" columns={userColumns} />} />
+          <Route path="/organizations" element={<CrudPage entityType="organizations" title="Organizations" columns={organizationColumns} />} />
           <Route path="/hostels" element={<Hostels />} />
           <Route path="/blocks" element={<Blocks />} />
           <Route path="/floors" element={<Floors />} />

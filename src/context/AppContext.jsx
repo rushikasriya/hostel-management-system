@@ -120,7 +120,9 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const organizationId = currentUser?.organization_id;
+  const userRoleId = parseInt(sessionStorage.getItem('roleId'), 10);
+  const userRole = roles.find(r => r.id === userRoleId)?.role_name || '';
+  const organizationId = userRole === 'superAdmin' ? null : (currentUser?.organization_id || null);
 
   const addRecord = async (entityType, record) => {
     try {
@@ -161,6 +163,9 @@ export const AppProvider = ({ children }) => {
         record.fee = record.fee ? parseFloat(record.fee) : null;
         await handleApiAction('/addTenant', 'POST', record);
         await reloadData('/getTenants', setRawTenants, 'tenant_id');
+      } else if (entityType === 'organizations') {
+        await handleApiAction('/addOrganization', 'POST', record);
+        await reloadData('/getOrganizations', setOrganizations, 'id');
       }
       addToast(`Item added successfully!`);
     } catch (err) {
@@ -207,6 +212,9 @@ export const AppProvider = ({ children }) => {
         updatedRecord.fee = updatedRecord.fee ? parseFloat(updatedRecord.fee) : null;
         await handleApiAction(`/updateTenantDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
         await reloadData('/getTenants', setRawTenants, 'tenant_id');
+      } else if (entityType === 'organizations') {
+        await handleApiAction(`/updateOrganization/${updatedRecord.id}`, 'PUT', updatedRecord);
+        await reloadData('/getOrganizations', setOrganizations, 'id');
       }
       addToast(`Item updated successfully!`);
     } catch (err) {
@@ -237,6 +245,9 @@ export const AppProvider = ({ children }) => {
       } else if (entityType === 'tenants') {
         await handleApiAction(`/deleteTenant/${id}`, 'DELETE');
         await reloadData('/getTenants', setRawTenants, 'tenant_id');
+      } else if (entityType === 'organizations') {
+        await handleApiAction(`/deleteOrganization/${id}`, 'DELETE');
+        await reloadData('/getOrganizations', setOrganizations, 'id');
       }
       addToast('Item deleted successfully!', 'success');
     } catch (err) {
@@ -257,8 +268,6 @@ export const AppProvider = ({ children }) => {
   };
 
   const userId = parseInt(sessionStorage.getItem('userId'), 10);
-  const userRoleId = parseInt(sessionStorage.getItem('roleId'), 10);
-  const userRole = roles.find(r => r.id === userRoleId)?.role_name || '';
 
   // Filter raw lists by Organization ID first
   const orgHostels = rawHostels.filter(h => !organizationId || h.organization_id === organizationId);
