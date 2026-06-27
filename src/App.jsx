@@ -19,17 +19,17 @@ import { ExternalLink } from 'lucide-react';
 import { useAppContext } from './context/AppContext';
 
 function App() {
-  const { roles, users, hostels, blocks, floors, rooms, beds, addToast } = useAppContext();
-  const [isAuthenticated, setIsAuthenticated] = useState(sessionStorage.getItem('auth') === 'true');
+  const { roles, users, hostels, blocks, floors, rooms, beds, addToast, isAuthenticated, setIsAuthenticated, currentUser, setCurrentUser } = useAppContext();
 
   React.useEffect(() => {
     if (isAuthenticated && (!sessionStorage.getItem('userName') || !sessionStorage.getItem('userId'))) {
       // Force logout for old sessions without a saved userName or userId
       sessionStorage.removeItem('auth');
       setIsAuthenticated(false);
+      setCurrentUser(null);
       if (addToast) addToast('Session updated. Please log in again.', 'success');
     }
-  }, [isAuthenticated, addToast]);
+  }, [isAuthenticated, addToast, setIsAuthenticated, setCurrentUser]);
 
   if (!isAuthenticated) {
     return <Login onLogin={(user) => {
@@ -38,7 +38,14 @@ function App() {
         sessionStorage.setItem('userName', user.user_name);
         sessionStorage.setItem('userId', user.user_id || user.id);
         if (user.role_id) sessionStorage.setItem('roleId', user.role_id);
+        if (user.organization_id) sessionStorage.setItem('organizationId', user.organization_id);
       }
+      setCurrentUser({
+        id: user.user_id || user.id,
+        user_name: user.user_name,
+        role_id: user.role_id,
+        organization_id: user.organization_id
+      });
       setIsAuthenticated(true);
       if (addToast) addToast(`Successfully logged in${user ? ` as ${user.user_name}` : ''}!`, 'success');
     }} />;

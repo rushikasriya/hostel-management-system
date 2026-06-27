@@ -15,16 +15,34 @@ export const AppProvider = ({ children }) => {
     return [];
   };
 
-  const [users, setUsers] = useState(() => loadInitialData('users'));
-  const [hostels, setHostels] = useState(() => loadInitialData('hostels'));
-  const [blocks, setBlocks] = useState(() => loadInitialData('blocks'));
-  const [floors, setFloors] = useState(() => loadInitialData('floors'));
-  const [rooms, setRooms] = useState(() => loadInitialData('rooms'));
-  const [beds, setBeds] = useState(() => loadInitialData('beds'));
-  const [tenants, setTenants] = useState(() => loadInitialData('tenants'));
+  const [rawUsers, setRawUsers] = useState(() => loadInitialData('users'));
+  const [rawHostels, setRawHostels] = useState(() => loadInitialData('hostels'));
+  const [rawBlocks, setRawBlocks] = useState(() => loadInitialData('blocks'));
+  const [rawFloors, setRawFloors] = useState(() => loadInitialData('floors'));
+  const [rawRooms, setRawRooms] = useState(() => loadInitialData('rooms'));
+  const [rawBeds, setRawBeds] = useState(() => loadInitialData('beds'));
+  const [rawTenants, setRawTenants] = useState(() => loadInitialData('tenants'));
   const [roles, setRoles] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
   const [toasts, setToasts] = useState([]);
   const [globalSearch, setGlobalSearch] = useState('');
+
+  const [isAuthenticated, setIsAuthenticated] = useState(sessionStorage.getItem('auth') === 'true');
+  const [currentUser, setCurrentUser] = useState(() => {
+    const userId = sessionStorage.getItem('userId');
+    const userName = sessionStorage.getItem('userName');
+    const roleId = sessionStorage.getItem('roleId');
+    const organizationId = sessionStorage.getItem('organizationId');
+    if (userId && userName) {
+      return { 
+        id: parseInt(userId, 10), 
+        user_name: userName, 
+        role_id: roleId ? parseInt(roleId, 10) : null, 
+        organization_id: organizationId ? parseInt(organizationId, 10) : null 
+      };
+    }
+    return null;
+  });
 
   const addToast = (message, type = 'success') => {
     const id = generateId();
@@ -40,7 +58,7 @@ export const AppProvider = ({ children }) => {
       .then(res => res.json())
       .then(data => {
         const mappedUsers = data.map(u => ({ ...u, id: u.user_id || u.id, isDeleted: u.status === 'F' }));
-        setUsers(mappedUsers);
+        setRawUsers(mappedUsers);
       })
       .catch(err => console.error("Failed to load users:", err));
   }, []);
@@ -51,33 +69,37 @@ export const AppProvider = ({ children }) => {
       .then(res => res.json())
       .then(data => {
         const mappedHostels = data.map(h => ({ ...h, id: h.id || h.hostel_id, isDeleted: h.status === 'F' }));
-        setHostels(mappedHostels);
+        setRawHostels(mappedHostels);
       })
       .catch(err => console.error("Failed to load hostels:", err));
   }, []);
 
   useEffect(() => {
-    fetch('/getBlocks').then(res => res.json()).then(data => { if (Array.isArray(data)) setBlocks(data.map(h => ({ ...h, id: h.id || h.block_id }))) }).catch(err => console.error("Failed:", err));
+    fetch('/getBlocks').then(res => res.json()).then(data => { if (Array.isArray(data)) setRawBlocks(data.map(h => ({ ...h, id: h.id || h.block_id }))) }).catch(err => console.error("Failed:", err));
   }, []);
 
   useEffect(() => {
-    fetch('/getFloors').then(res => res.json()).then(data => { if (Array.isArray(data)) setFloors(data.map(h => ({ ...h, id: h.id || h.floor_id }))) }).catch(err => console.error("Failed:", err));
+    fetch('/getFloors').then(res => res.json()).then(data => { if (Array.isArray(data)) setRawFloors(data.map(h => ({ ...h, id: h.id || h.floor_id }))) }).catch(err => console.error("Failed:", err));
   }, []);
 
   useEffect(() => {
-    fetch('/getRooms').then(res => res.json()).then(data => { if (Array.isArray(data)) setRooms(data.map(h => ({ ...h, id: h.id || h.room_id }))) }).catch(err => console.error("Failed:", err));
+    fetch('/getRooms').then(res => res.json()).then(data => { if (Array.isArray(data)) setRawRooms(data.map(h => ({ ...h, id: h.id || h.room_id }))) }).catch(err => console.error("Failed:", err));
   }, []);
 
   useEffect(() => {
-    fetch('/getBeds').then(res => res.json()).then(data => { if (Array.isArray(data)) setBeds(data.map(h => ({ ...h, id: h.id || h.bed_id }))) }).catch(err => console.error("Failed:", err));
+    fetch('/getBeds').then(res => res.json()).then(data => { if (Array.isArray(data)) setRawBeds(data.map(h => ({ ...h, id: h.id || h.bed_id }))) }).catch(err => console.error("Failed:", err));
   }, []);
 
   useEffect(() => {
-    fetch('/getTenants').then(res => res.json()).then(data => { if (Array.isArray(data)) setTenants(data.map(h => ({ ...h, id: h.id || h.tenant_id }))) }).catch(err => console.error("Failed:", err));
+    fetch('/getTenants').then(res => res.json()).then(data => { if (Array.isArray(data)) setRawTenants(data.map(h => ({ ...h, id: h.id || h.tenant_id }))) }).catch(err => console.error("Failed:", err));
   }, []);
 
   useEffect(() => {
     fetch('/getRoles').then(res => res.json()).then(data => { if (Array.isArray(data)) setRoles(data) }).catch(err => console.error("Failed:", err));
+  }, []);
+
+  useEffect(() => {
+    fetch('/getOrganizations').then(res => res.json()).then(data => { if (Array.isArray(data)) setOrganizations(data) }).catch(err => console.error("Failed to load organizations:", err));
   }, []);
 
   const handleApiAction = async (url, method, body = null) => {
@@ -98,6 +120,8 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const organizationId = currentUser?.organization_id;
+
   const addRecord = async (entityType, record) => {
     try {
       if (entityType === 'users') {
@@ -105,36 +129,38 @@ export const AppProvider = ({ children }) => {
         else record.role_id = null;
         if (record.manager_id) record.manager_id = parseInt(record.manager_id, 10);
         else record.manager_id = null;
+        if (organizationId) record.organization_id = organizationId;
         await handleApiAction('/addUser', 'POST', record);
-        await reloadData('/getUsers', setUsers, 'user_id');
+        await reloadData('/getUsers', setRawUsers, 'user_id');
       } else if (entityType === 'hostels') {
         record.location_id = record.location_id ? parseInt(record.location_id, 10) : null;
         record.manager_id = record.manager_id ? parseInt(record.manager_id, 10) : null;
+        if (organizationId) record.organization_id = organizationId;
         await handleApiAction('/addHostel', 'POST', record);
-        await reloadData('/getHostels', setHostels, 'hostel_id');
+        await reloadData('/getHostels', setRawHostels, 'hostel_id');
       } else if (entityType === 'blocks') {
         record.hostel_id = record.hostel_id ? parseInt(record.hostel_id, 10) : null;
         record.block_incharge_id = record.block_incharge_id ? parseInt(record.block_incharge_id, 10) : null;
         await handleApiAction('/addBlocks', 'POST', record);
-        await reloadData('/getBlocks', setBlocks, 'block_id');
+        await reloadData('/getBlocks', setRawBlocks, 'block_id');
       } else if (entityType === 'floors') {
         record.block_id = record.block_id ? parseInt(record.block_id, 10) : null;
         record.incharge_id = record.incharge_id ? parseInt(record.incharge_id, 10) : null;
         await handleApiAction('/addFloor', 'POST', record);
-        await reloadData('/getFloors', setFloors, 'floor_id');
+        await reloadData('/getFloors', setRawFloors, 'floor_id');
       } else if (entityType === 'rooms') {
         record.floor_id = record.floor_id ? parseInt(record.floor_id, 10) : null;
         await handleApiAction('/addRoom', 'POST', record);
-        await reloadData('/getRooms', setRooms, 'room_id');
+        await reloadData('/getRooms', setRawRooms, 'room_id');
       } else if (entityType === 'beds') {
         record.room_id = record.room_id ? parseInt(record.room_id, 10) : null;
         await handleApiAction('/addBed', 'POST', record);
-        await reloadData('/getBeds', setBeds, 'bed_id');
+        await reloadData('/getBeds', setRawBeds, 'bed_id');
       } else if (entityType === 'tenants') {
         record.bed_id = record.bed_id ? parseInt(record.bed_id, 10) : null;
         record.fee = record.fee ? parseFloat(record.fee) : null;
         await handleApiAction('/addTenant', 'POST', record);
-        await reloadData('/getTenants', setTenants, 'tenant_id');
+        await reloadData('/getTenants', setRawTenants, 'tenant_id');
       }
       addToast(`Item added successfully!`);
     } catch (err) {
@@ -149,36 +175,38 @@ export const AppProvider = ({ children }) => {
         else updatedRecord.role_id = null;
         if (updatedRecord.manager_id) updatedRecord.manager_id = parseInt(updatedRecord.manager_id, 10);
         else updatedRecord.manager_id = null;
+        if (organizationId) updatedRecord.organization_id = organizationId;
         await handleApiAction(`/updateUser/${updatedRecord.id}`, 'PUT', updatedRecord);
-        await reloadData('/getUsers', setUsers, 'user_id');
+        await reloadData('/getUsers', setRawUsers, 'user_id');
       } else if (entityType === 'hostels') {
         updatedRecord.location_id = updatedRecord.location_id ? parseInt(updatedRecord.location_id, 10) : null;
         updatedRecord.manager_id = updatedRecord.manager_id ? parseInt(updatedRecord.manager_id, 10) : null;
+        if (organizationId) updatedRecord.organization_id = organizationId;
         await handleApiAction(`/updateHostelDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
-        await reloadData('/getHostels', setHostels, 'hostel_id');
+        await reloadData('/getHostels', setRawHostels, 'hostel_id');
       } else if (entityType === 'blocks') {
         updatedRecord.hostel_id = updatedRecord.hostel_id ? parseInt(updatedRecord.hostel_id, 10) : null;
         updatedRecord.block_incharge_id = updatedRecord.block_incharge_id ? parseInt(updatedRecord.block_incharge_id, 10) : null;
         await handleApiAction(`/updateBlockDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
-        await reloadData('/getBlocks', setBlocks, 'block_id');
+        await reloadData('/getBlocks', setRawBlocks, 'block_id');
       } else if (entityType === 'floors') {
         updatedRecord.block_id = updatedRecord.block_id ? parseInt(updatedRecord.block_id, 10) : null;
         updatedRecord.incharge_id = updatedRecord.incharge_id ? parseInt(updatedRecord.incharge_id, 10) : null;
         await handleApiAction(`/updateFloorDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
-        await reloadData('/getFloors', setFloors, 'floor_id');
+        await reloadData('/getFloors', setRawFloors, 'floor_id');
       } else if (entityType === 'rooms') {
         updatedRecord.floor_id = updatedRecord.floor_id ? parseInt(updatedRecord.floor_id, 10) : null;
         await handleApiAction(`/updateRoomDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
-        await reloadData('/getRooms', setRooms, 'room_id');
+        await reloadData('/getRooms', setRawRooms, 'room_id');
       } else if (entityType === 'beds') {
         updatedRecord.room_id = updatedRecord.room_id ? parseInt(updatedRecord.room_id, 10) : null;
         await handleApiAction(`/updateBedDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
-        await reloadData('/getBeds', setBeds, 'bed_id');
+        await reloadData('/getBeds', setRawBeds, 'bed_id');
       } else if (entityType === 'tenants') {
         updatedRecord.bed_id = updatedRecord.bed_id ? parseInt(updatedRecord.bed_id, 10) : null;
         updatedRecord.fee = updatedRecord.fee ? parseFloat(updatedRecord.fee) : null;
         await handleApiAction(`/updateTenantDetails/${updatedRecord.id}`, 'PUT', updatedRecord);
-        await reloadData('/getTenants', setTenants, 'tenant_id');
+        await reloadData('/getTenants', setRawTenants, 'tenant_id');
       }
       addToast(`Item updated successfully!`);
     } catch (err) {
@@ -190,25 +218,25 @@ export const AppProvider = ({ children }) => {
     try {
       if (entityType === 'users') {
         await handleApiAction(`/deactivateUser/${id}`, 'DELETE');
-        await reloadData('/getUsers', setUsers, 'user_id');
+        await reloadData('/getUsers', setRawUsers, 'user_id');
       } else if (entityType === 'hostels') {
         await handleApiAction(`/updateHostelStatus/${id}`, 'DELETE');
-        await reloadData('/getHostels', setHostels, 'hostel_id');
+        await reloadData('/getHostels', setRawHostels, 'hostel_id');
       } else if (entityType === 'blocks') {
         await handleApiAction(`/deleteBlock/${id}`, 'DELETE');
-        await reloadData('/getBlocks', setBlocks, 'block_id');
+        await reloadData('/getBlocks', setRawBlocks, 'block_id');
       } else if (entityType === 'floors') {
         await handleApiAction(`/deleteFloor/${id}`, 'DELETE');
-        await reloadData('/getFloors', setFloors, 'floor_id');
+        await reloadData('/getFloors', setRawFloors, 'floor_id');
       } else if (entityType === 'rooms') {
         await handleApiAction(`/deleteRoom/${id}`, 'DELETE');
-        await reloadData('/getRooms', setRooms, 'room_id');
+        await reloadData('/getRooms', setRawRooms, 'room_id');
       } else if (entityType === 'beds') {
         await handleApiAction(`/deleteBed/${id}`, 'DELETE');
-        await reloadData('/getBeds', setBeds, 'bed_id');
+        await reloadData('/getBeds', setRawBeds, 'bed_id');
       } else if (entityType === 'tenants') {
         await handleApiAction(`/deleteTenant/${id}`, 'DELETE');
-        await reloadData('/getTenants', setTenants, 'tenant_id');
+        await reloadData('/getTenants', setRawTenants, 'tenant_id');
       }
       addToast('Item deleted successfully!', 'success');
     } catch (err) {
@@ -220,7 +248,7 @@ export const AppProvider = ({ children }) => {
     try {
       if (entityType === 'users') {
         await handleApiAction(`/hardDeleteUser/${id}`, 'DELETE');
-        await reloadData('/getUsers', setUsers, 'user_id');
+        await reloadData('/getUsers', setRawUsers, 'user_id');
       }
       addToast('User permanently deleted!', 'success');
     } catch (err) {
@@ -232,50 +260,60 @@ export const AppProvider = ({ children }) => {
   const userRoleId = parseInt(sessionStorage.getItem('roleId'), 10);
   const userRole = roles.find(r => r.id === userRoleId)?.role_name || '';
 
-  // Apply Role-Based Data Restrictions
-  let filteredHostels = hostels;
-  let filteredBlocks = blocks;
-  let filteredFloors = floors;
-  let filteredRooms = rooms;
-  let filteredBeds = beds;
-  let filteredTenants = tenants;
+  // Filter raw lists by Organization ID first
+  const orgHostels = rawHostels.filter(h => !organizationId || h.organization_id === organizationId);
+  const orgBlocks = rawBlocks.filter(b => !organizationId || orgHostels.some(h => h.id === b.hostel_id));
+  const orgFloors = rawFloors.filter(f => !organizationId || orgBlocks.some(b => b.id === f.block_id));
+  const orgRooms = rawRooms.filter(r => !organizationId || orgFloors.some(f => f.id === r.floor_id));
+  const orgBeds = rawBeds.filter(b => !organizationId || orgRooms.some(r => r.id === b.room_id));
+  const orgTenants = rawTenants.filter(t => !organizationId || orgBeds.some(b => b.id === t.bed_id));
+  const orgUsers = rawUsers.filter(u => !organizationId || u.organization_id === organizationId);
+
+  // Apply Role-Based Data Restrictions on top of organization's hostels
+  let filteredHostels = orgHostels;
+  let filteredBlocks = orgBlocks;
+  let filteredFloors = orgFloors;
+  let filteredRooms = orgRooms;
+  let filteredBeds = orgBeds;
+  let filteredTenants = orgTenants;
 
   if (userRole === 'manager') {
-    filteredHostels = hostels.filter(h => h.manager_id === userId);
+    filteredHostels = orgHostels.filter(h => h.manager_id === userId);
     const validHostelIds = new Set(filteredHostels.map(h => h.id));
-    filteredBlocks = blocks.filter(b => validHostelIds.has(b.hostel_id));
+    filteredBlocks = orgBlocks.filter(b => validHostelIds.has(b.hostel_id));
     const validBlockIds = new Set(filteredBlocks.map(b => b.id));
-    filteredFloors = floors.filter(f => validBlockIds.has(f.block_id));
+    filteredFloors = orgFloors.filter(f => validBlockIds.has(f.block_id));
     const validFloorIds = new Set(filteredFloors.map(f => f.id));
-    filteredRooms = rooms.filter(r => validFloorIds.has(r.floor_id));
+    filteredRooms = orgRooms.filter(r => validFloorIds.has(r.floor_id));
     const validRoomIds = new Set(filteredRooms.map(r => r.id));
-    filteredBeds = beds.filter(b => validRoomIds.has(b.room_id));
+    filteredBeds = orgBeds.filter(b => validRoomIds.has(b.room_id));
     const validBedIds = new Set(filteredBeds.map(b => b.id));
-    filteredTenants = tenants.filter(t => validBedIds.has(t.bed_id));
+    filteredTenants = orgTenants.filter(t => validBedIds.has(t.bed_id));
   } else if (userRole === 'blockIncharge') {
-    filteredBlocks = blocks.filter(b => b.block_incharge_id === userId);
+    filteredBlocks = orgBlocks.filter(b => b.block_incharge_id === userId);
     const validBlockIds = new Set(filteredBlocks.map(b => b.id));
-    filteredFloors = floors.filter(f => validBlockIds.has(f.block_id));
+    filteredFloors = orgFloors.filter(f => validBlockIds.has(f.block_id));
     const validFloorIds = new Set(filteredFloors.map(f => f.id));
-    filteredRooms = rooms.filter(r => validFloorIds.has(r.floor_id));
+    filteredRooms = orgRooms.filter(r => validFloorIds.has(r.floor_id));
     const validRoomIds = new Set(filteredRooms.map(r => r.id));
-    filteredBeds = beds.filter(b => validRoomIds.has(b.room_id));
+    filteredBeds = orgBeds.filter(b => validRoomIds.has(b.room_id));
     const validBedIds = new Set(filteredBeds.map(b => b.id));
-    filteredTenants = tenants.filter(t => validBedIds.has(t.bed_id));
+    filteredTenants = orgTenants.filter(t => validBedIds.has(t.bed_id));
   } else if (userRole === 'floorIncharge') {
     filteredBlocks = []; // Can't see blocks
-    filteredFloors = floors.filter(f => f.incharge_id === userId);
+    filteredFloors = orgFloors.filter(f => f.incharge_id === userId);
     const validFloorIds = new Set(filteredFloors.map(f => f.id));
-    filteredRooms = rooms.filter(r => validFloorIds.has(r.floor_id));
+    filteredRooms = orgRooms.filter(r => validFloorIds.has(r.floor_id));
     const validRoomIds = new Set(filteredRooms.map(r => r.id));
-    filteredBeds = beds.filter(b => validRoomIds.has(b.room_id));
+    filteredBeds = orgBeds.filter(b => validRoomIds.has(b.room_id));
     const validBedIds = new Set(filteredBeds.map(b => b.id));
-    filteredTenants = tenants.filter(t => validBedIds.has(t.bed_id));
+    filteredTenants = orgTenants.filter(t => validBedIds.has(t.bed_id));
   }
 
   return (
     <AppContext.Provider value={{
-      users, hostels: filteredHostels, blocks: filteredBlocks, floors: filteredFloors, rooms: filteredRooms, beds: filteredBeds, tenants: filteredTenants, roles,
+      users: orgUsers, hostels: filteredHostels, blocks: filteredBlocks, floors: filteredFloors, rooms: filteredRooms, beds: filteredBeds, tenants: filteredTenants, roles,
+      organizations, currentUser, setCurrentUser, isAuthenticated, setIsAuthenticated,
       globalSearch, setGlobalSearch,
       addRecord, updateRecord, softDeleteRecord, hardDeleteRecord, addToast, userRole
     }}>

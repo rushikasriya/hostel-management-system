@@ -5,13 +5,25 @@ import { useAppContext } from '../context/AppContext';
 
 export const Header = () => {
   const location = useLocation();
-  const { globalSearch, setGlobalSearch } = useAppContext();
+  const { globalSearch, setGlobalSearch, currentUser, roles, organizations } = useAppContext();
   
   const getPageTitle = () => {
     if (location.pathname === '/') return 'Dashboard';
     const path = location.pathname.substring(1);
     return path.charAt(0).toUpperCase() + path.slice(1);
   };
+
+  const getRoleDisplayName = (rName) => {
+    if (rName === 'superAdmin') return 'Super Admin';
+    if (rName === 'admin') return 'Admin';
+    if (rName === 'manager') return 'Manager';
+    if (rName === 'blockIncharge') return 'Block Incharge';
+    if (rName === 'floorIncharge') return 'Floor Incharge';
+    return rName || 'Admin';
+  };
+
+  const roleDisplayName = getRoleDisplayName(roles.find(r => r.id === currentUser?.role_id)?.role_name);
+  const orgName = organizations.find(o => o.id === currentUser?.organization_id)?.name || 'Chetana Hostels';
 
   return (
     <header className="header">
@@ -37,11 +49,13 @@ export const Header = () => {
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderLeft: '1px solid var(--surface-border)', paddingLeft: '20px' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '18px' }}>
-            {(sessionStorage.getItem('userName') || 'A')[0].toUpperCase()}
+            {(currentUser?.user_name || 'A')[0].toUpperCase()}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{sessionStorage.getItem('userName') || 'Admin'}</span>
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Super Admin</span>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{currentUser?.user_name || 'Admin'}</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>
+              {orgName} • {roleDisplayName}
+            </span>
           </div>
         </div>
 

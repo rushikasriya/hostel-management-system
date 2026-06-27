@@ -34,6 +34,12 @@ app.add_middleware(CORSMiddleware,
 
 # --- Pydantic Models ---
 
+class Organization(BaseModel):
+    photo_url: str | None = None
+    name: str
+    code: str | None = None
+    status: str | None = "T"
+
 class User(BaseModel):
     photo_url: str | None = None
     user_name: str
@@ -44,6 +50,7 @@ class User(BaseModel):
     email_id: EmailStr
     password: str | None = "123456"
     status: str | None = "T"
+    organization_id: int | None = 1
 
 class Login(BaseModel):
     email_id: EmailStr
@@ -60,6 +67,7 @@ class Hostel(BaseModel):
     location_id: int | None = None
     manager_id: int | None = None
     status: str | None = None
+    organization_id: int | None = 1
 
 class Block(BaseModel):
     photo_url: str | None = None
@@ -139,7 +147,7 @@ def login_user(login: Login):
     db = localhost()
     cursor = db.cursor()
     query = """
-    SELECT user_id, user_name, email_id, role_id, status
+    SELECT user_id, user_name, email_id, role_id, status, organization_id
     FROM users
     WHERE email_id = %s AND password = %s AND status = 'T'
     """
@@ -176,10 +184,10 @@ def create_user(user: User):
     cursor = db.cursor()
     default_password = 123456
     query = """
-    INSERT INTO users (user_name, contact_no, address, role_id, manager_id, email_id, password, status, photo_url)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO users (user_name, contact_no, address, role_id, manager_id, email_id, password, status, photo_url, organization_id)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
-    values = (user.user_name, user.contact_no, user.address, user.role_id, user.manager_id, user.email_id, default_password, user.status, user.photo_url)
+    values = (user.user_name, user.contact_no, user.address, user.role_id, user.manager_id, user.email_id, default_password, user.status, user.photo_url, user.organization_id)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -189,7 +197,7 @@ def create_user(user: User):
 def get_users():
     db = localhost()
     cursor = db.cursor()
-    query = """SELECT u.user_id, u.user_name, u.contact_no, u.address, u.email_id, u.role_id, r.role_name, u.manager_id, u.status, u.photo_url 
+    query = """SELECT u.user_id, u.user_name, u.contact_no, u.address, u.email_id, u.role_id, r.role_name, u.manager_id, u.status, u.photo_url, u.organization_id 
                FROM users u JOIN roles r ON r.id = u.role_id"""
     cursor.execute(query)
     users = cursor.fetchall()
@@ -200,7 +208,7 @@ def get_users():
 def get_user(user_id: int):
     db = localhost()
     cursor = db.cursor()
-    query = """SELECT u.user_id, u.user_name, u.contact_no, u.address, u.email_id, u.role_id, r.role_name, u.manager_id, u.status, u.photo_url 
+    query = """SELECT u.user_id, u.user_name, u.contact_no, u.address, u.email_id, u.role_id, r.role_name, u.manager_id, u.status, u.photo_url, u.organization_id 
                FROM users u JOIN roles r ON r.id = u.role_id WHERE user_id = %s"""
     cursor.execute(query, (user_id,))
     user = cursor.fetchone()
@@ -213,8 +221,8 @@ def get_user(user_id: int):
 def update_user(user_id: int, user: User):
     db = localhost()
     cursor = db.cursor()
-    query = """UPDATE users SET user_name = %s, contact_no = %s, address = %s, role_id = %s, manager_id = %s, email_id = %s, status = %s, photo_url = %s WHERE user_id = %s"""
-    values = (user.user_name, user.contact_no, user.address, user.role_id, user.manager_id, user.email_id, user.status, user.photo_url, user_id)
+    query = """UPDATE users SET user_name = %s, contact_no = %s, address = %s, role_id = %s, manager_id = %s, email_id = %s, status = %s, photo_url = %s, organization_id = %s WHERE user_id = %s"""
+    values = (user.user_name, user.contact_no, user.address, user.role_id, user.manager_id, user.email_id, user.status, user.photo_url, user.organization_id, user_id)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -276,8 +284,8 @@ def create_hostel(hostel: Hostel):
     if not h_code and hostel.hostel_name:
         h_code = "".join([word[0].upper() for word in hostel.hostel_name.split() if word])
         
-    query = "INSERT INTO hostels (hostel_name, hostel_code, location_id, manager_id, status, photo_url) VALUES (%s, %s, %s, %s, %s, %s)"
-    values = (hostel.hostel_name, h_code, hostel.location_id, hostel.manager_id, 'T', hostel.photo_url)
+    query = "INSERT INTO hostels (hostel_name, hostel_code, location_id, manager_id, status, photo_url, organization_id) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+    values = (hostel.hostel_name, h_code, hostel.location_id, hostel.manager_id, 'T', hostel.photo_url, hostel.organization_id)
     cursor.execute(query, values)
     db.commit()
     db.close()
@@ -314,14 +322,37 @@ def update_hostel(id: int, hostel: Hostel):
     if not h_code and hostel.hostel_name:
         h_code = "".join([word[0].upper() for word in hostel.hostel_name.split() if word])
         
-    query = "UPDATE hostels SET hostel_name = %s, hostel_code = %s, location_id = %s, manager_id = %s, status = %s, photo_url = %s WHERE id = %s"
-    values = (hostel.hostel_name, h_code, hostel.location_id, hostel.manager_id, hostel.status, hostel.photo_url, id)
+    query = "UPDATE hostels SET hostel_name = %s, hostel_code = %s, location_id = %s, manager_id = %s, status = %s, photo_url = %s, organization_id = %s WHERE id = %s"
+    values = (hostel.hostel_name, h_code, hostel.location_id, hostel.manager_id, hostel.status, hostel.photo_url, hostel.organization_id, id)
     cursor.execute(query, values)
     db.commit()
     db.close()
     if cursor.rowcount == 0:
         raise HTTPException(status_code=404, detail="Hostel not found")
     return {"message": "Hostel updated successfully"}
+
+# --- ORGANIZATIONS ---
+
+@app.get("/getOrganizations")
+def get_organizations():
+    db = localhost()
+    cursor = db.cursor()
+    query = "SELECT * FROM organizations"
+    cursor.execute(query)
+    orgs = cursor.fetchall()
+    db.close()
+    return orgs
+
+@app.post("/addOrganization")
+def create_organization(org: Organization):
+    db = localhost()
+    cursor = db.cursor()
+    query = "INSERT INTO organizations (name, code, status, photo_url) VALUES (%s, %s, %s, %s)"
+    values = (org.name, org.code, org.status, org.photo_url)
+    cursor.execute(query, values)
+    db.commit()
+    db.close()
+    return {"message": "Organization created successfully"}
 
 @app.delete("/updateHostelStatus/{id}")
 def delete_hostel(id: int):

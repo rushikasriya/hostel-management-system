@@ -7,10 +7,18 @@ def init_db():
 
     # Drop existing tables if they exist to start fresh
     cursor.execute("""
-    DROP TABLE IF EXISTS beds, blocks, floors, hostels, locations, roles, rooms, tenants, users, bed_history, attendance CASCADE;
+    DROP TABLE IF EXISTS beds, blocks, floors, hostels, locations, roles, rooms, tenants, users, bed_history, attendance, organizations CASCADE;
     """)
 
     cursor.execute("""
+    CREATE TABLE organizations (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      code TEXT DEFAULT NULL,
+      status TEXT DEFAULT 'T',
+      photo_url TEXT DEFAULT NULL
+    );
+
     CREATE TABLE beds (
       id SERIAL PRIMARY KEY,
       room_id INTEGER NOT NULL,
@@ -42,7 +50,8 @@ def init_db():
       location_id INTEGER DEFAULT NULL,
       manager_id INTEGER DEFAULT NULL,
       status TEXT DEFAULT NULL,
-      photo_url TEXT DEFAULT NULL
+      photo_url TEXT DEFAULT NULL,
+      organization_id INTEGER DEFAULT 1
     );
 
     CREATE TABLE locations (
@@ -86,7 +95,8 @@ def init_db():
       email_id TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL,
       status TEXT DEFAULT NULL,
-      photo_url TEXT DEFAULT NULL
+      photo_url TEXT DEFAULT NULL,
+      organization_id INTEGER DEFAULT 1
     );
 
     CREATE TABLE bed_history (
@@ -113,6 +123,9 @@ def init_db():
     # --- INSERT DATA EXACTLY AS PROVIDED FROM MYSQL DUMP ---
     
     cursor.execute("""
+    insert into organizations (id, name, code) values
+    (1, 'Chetana Hostels', 'CH');
+
     insert into roles (id,role_name,status) values 
     (1,'superAdmin','T'),
     (2,'admin','T'),
@@ -120,8 +133,8 @@ def init_db():
     (4,'blockIncharge','T'),
     (5,'floorIncharge','T');
 
-    insert into users (user_id,user_name,contact_no,role_id,email_id,password,status) values 
-    (2,'rushika','8686867888',1,'rushikasriya.pendurthi@gmail.com','123456','T');
+    insert into users (user_id,user_name,contact_no,role_id,email_id,password,status,organization_id) values 
+    (2,'rushika','8686867888',1,'rushikasriya.pendurthi@gmail.com','123456','T',1);
     """)
 
     conn.commit()
