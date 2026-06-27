@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Check, X, Clock, Save, Calendar, Download, Eye } from 'lucide-react';
+import { Check, X, Clock, Save, Calendar, Download, Eye, Minus } from 'lucide-react';
 
 export const Attendance = () => {
   const { tenants, beds, rooms, floors, blocks, addToast, globalSearch } = useAppContext();
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [timeline, setTimeline] = useState('Morning');
   const [localState, setLocalState] = useState({}); // { tenant_id: { status, notes } }
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -15,7 +16,7 @@ export const Attendance = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    fetch(`/getAttendance?target_date=${date}`)
+    fetch(`/getAttendance?target_date=${date}&timeline=${timeline}`)
       .then(res => res.json())
       .then(data => {
         const newState = {};
@@ -29,7 +30,7 @@ export const Attendance = () => {
         addToast('Failed to load attendance data', 'error');
       })
       .finally(() => setIsLoading(false));
-  }, [date, addToast]);
+  }, [date, timeline, addToast]);
 
   const handleStatusChange = (tenantId, status) => {
     setLocalState(prev => ({
@@ -55,6 +56,7 @@ export const Attendance = () => {
           tenant_id: t.id,
           attendance_date: date,
           status: localState[t.id].status,
+          timeline: timeline,
           notes: localState[t.id].notes || ''
         }));
 
@@ -109,12 +111,12 @@ export const Attendance = () => {
   });
 
   const handleDownloadCSV = () => {
-    const headers = ['Tenant Name', 'Phone', 'Location', 'Status', 'Date'];
+    const headers = ['Tenant Name', 'Phone', 'Location', 'Status', 'Date', 'Timeline'];
     
     const csvData = filteredTenants.map(t => {
       const status = localState[t.id]?.status || 'Not Marked';
       const location = getBedInfo(t.bed_id);
-      return `"${t.tenant_name}","${t.phone || '-'}","${location}","${status}","${date}"`;
+      return `"${t.tenant_name}","${t.phone || '-'}","${location}","${status}","${date}","${timeline}"`;
     });
     
     const csvString = [headers.join(','), ...csvData].join('\n');
@@ -122,7 +124,7 @@ export const Attendance = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.setAttribute('href', url);
-    a.setAttribute('download', `Attendance_${date}_${filterStatus}.csv`);
+    a.setAttribute('download', `Attendance_${date}_${timeline}_${filterStatus}.csv`);
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -142,6 +144,18 @@ export const Attendance = () => {
               onChange={(e) => setDate(e.target.value)}
               style={{ border: 'none', outline: 'none', fontSize: '15px', color: 'var(--text-primary)', background: 'transparent' }}
             />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', background: '#fff', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--surface-border)' }}>
+            <span style={{ fontSize: '15px', color: 'var(--text-secondary)', marginRight: '8px', fontWeight: 500 }}>Timeline:</span>
+            <select 
+              value={timeline} 
+              onChange={(e) => setTimeline(e.target.value)}
+              style={{ border: 'none', outline: 'none', fontSize: '15px', color: 'var(--text-primary)', background: 'transparent', cursor: 'pointer', fontWeight: 600 }}
+            >
+              <option value="Morning">Morning</option>
+              <option value="Evening">Evening</option>
+            </select>
           </div>
 
           <button 
@@ -178,12 +192,14 @@ export const Attendance = () => {
             <option value="Present">Present Only</option>
             <option value="Absent">Absent Only</option>
             <option value="Late">Late Only</option>
+            <option value="Half Day">Half Day Only</option>
             <option value="Unmarked">Not Marked</option>
           </select>
         </div>
         
         <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-secondary)' }}>Quick Actions:</span>
         <button className="btn btn-outline" style={{ fontSize: '13px', padding: '6px 12px' }} onClick={() => handleMarkAll('Present')}>Mark All Present</button>
+        <button className="btn btn-outline" style={{ fontSize: '13px', padding: '6px 12px' }} onClick={() => handleMarkAll('Half Day')}>Mark All Half Day</button>
         <button className="btn btn-outline" style={{ fontSize: '13px', padding: '6px 12px' }} onClick={() => handleMarkAll('Absent')}>Mark All Absent</button>
       </div>
 
@@ -203,7 +219,7 @@ export const Attendance = () => {
                   <th>Photo</th>
                   <th>Location</th>
                   <th>Phone</th>
-                  <th style={{ width: '300px' }}>Status</th>
+                  <th style={{ width: '380px' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -243,6 +259,18 @@ export const Attendance = () => {
                             }}
                           >
                             <Check size={14} /> Present
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => handleStatusChange(tenant.id, 'Half Day')}
+                            style={{
+                              flex: 1, padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                              border: currentStatus === 'Half Day' ? '1px solid #3b82f6' : '1px solid var(--surface-border)',
+                              background: currentStatus === 'Half Day' ? '#eff6ff' : '#fff',
+                              color: currentStatus === 'Half Day' ? '#3b82f6' : 'var(--text-secondary)'
+                            }}
+                          >
+                            <Minus size={14} /> Half Day
                           </button>
                           <button 
                             type="button"

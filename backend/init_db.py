@@ -103,9 +103,10 @@ def init_db():
       tenant_id INTEGER NOT NULL,
       attendance_date DATE NOT NULL,
       status TEXT NOT NULL,
+      timeline TEXT NOT NULL DEFAULT 'Morning',
       notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE(tenant_id, attendance_date)
+      UNIQUE(tenant_id, attendance_date, timeline)
     );
     """)
 

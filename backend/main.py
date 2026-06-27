@@ -105,6 +105,7 @@ class Attendance(BaseModel):
     tenant_id: int
     attendance_date: date
     status: str
+    timeline: Optional[str] = "Morning"
     notes: Optional[str] = None
 
 
@@ -781,12 +782,12 @@ def mark_attendance(attendance: Attendance):
     cursor = db.cursor()
     
     query = """
-    INSERT INTO attendance (tenant_id, attendance_date, status, notes)
-    VALUES (%s, %s, %s, %s)
-    ON CONFLICT (tenant_id, attendance_date) 
+    INSERT INTO attendance (tenant_id, attendance_date, status, timeline, notes)
+    VALUES (%s, %s, %s, %s, %s)
+    ON CONFLICT (tenant_id, attendance_date, timeline) 
     DO UPDATE SET status = EXCLUDED.status, notes = EXCLUDED.notes
     """
-    values = (attendance.tenant_id, attendance.attendance_date, attendance.status, attendance.notes)
+    values = (attendance.tenant_id, attendance.attendance_date, attendance.status, attendance.timeline, attendance.notes)
     
     cursor.execute(query, values)
     db.commit()
@@ -794,10 +795,13 @@ def mark_attendance(attendance: Attendance):
     return {"message": "Attendance marked successfully"}
 
 @app.get("/getAttendance")
-def get_attendance(target_date: Optional[date] = None):
+def get_attendance(target_date: Optional[date] = None, timeline: Optional[str] = None):
     db = localhost()
     cursor = db.cursor()
-    if target_date:
+    if target_date and timeline:
+        query = "SELECT * FROM attendance WHERE attendance_date = %s AND timeline = %s"
+        cursor.execute(query, (target_date, timeline))
+    elif target_date:
         query = "SELECT * FROM attendance WHERE attendance_date = %s"
         cursor.execute(query, (target_date,))
     else:
