@@ -120,7 +120,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const userRoleId = parseInt(sessionStorage.getItem('roleId'), 10);
+  const userRoleId = currentUser?.role_id ? parseInt(currentUser.role_id, 10) : null;
   const userRole = roles.find(r => r.id === userRoleId)?.role_name || '';
   const organizationId = userRole === 'superAdmin' ? null : (currentUser?.organization_id || null);
 
@@ -267,7 +267,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const userId = parseInt(sessionStorage.getItem('userId'), 10);
+  const userId = currentUser?.id;
 
   // Filter raw lists by Organization ID first
   const orgHostels = rawHostels.filter(h => !organizationId || h.organization_id === organizationId);
