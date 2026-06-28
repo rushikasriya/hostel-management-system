@@ -48,7 +48,11 @@ export default defineConfig({
       '/getAttendance': { target: 'http://127.0.0.1:3000', changeOrigin: true },
       '/addAttendance': { target: 'http://127.0.0.1:3000', changeOrigin: true },
       '/resetPassword': { target: 'http://127.0.0.1:3000', changeOrigin: true },
-      '/getBedHistory': { target: 'http://127.0.0.1:3000', changeOrigin: true }
+      '/getBedHistory': { target: 'http://127.0.0.1:3000', changeOrigin: true },
+      '/getOrganizations': { target: 'http://127.0.0.1:3000', changeOrigin: true },
+      '/addOrganization': { target: 'http://127.0.0.1:3000', changeOrigin: true },
+      '/updateOrganization': { target: 'http://127.0.0.1:3000', changeOrigin: true },
+      '/deleteOrganization': { target: 'http://127.0.0.1:3000', changeOrigin: true }
     }
   }
 })

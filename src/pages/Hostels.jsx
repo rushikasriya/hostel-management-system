@@ -4,11 +4,11 @@ import { Plus, Search, Building, MapPin, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Hostels = () => {
-  const { hostels, blocks, floors, rooms, beds, users, addToast, addRecord, updateRecord, softDeleteRecord } = useAppContext();
+  const { hostels, blocks, floors, rooms, beds, users, addToast, addRecord, updateRecord, softDeleteRecord, organizations, userRole } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ hostel_name: '', hostel_code: '', location_id: '', manager_id: '', status: 'T', photo_url: '' });
+  const [formData, setFormData] = useState({ hostel_name: '', hostel_code: '', location_id: '', manager_id: '', status: 'T', photo_url: '', organization_id: '' });
 
   const activeHostels = (hostels || []).filter(h => !h.isDeleted);
   const filteredHostels = activeHostels.filter(h => 
@@ -33,14 +33,20 @@ export const Hostels = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (editingId) {
-      updateRecord('hostels', { ...formData, id: editingId });
+    const dataToSubmit = { ...formData };
+    if (dataToSubmit.organization_id) {
+      dataToSubmit.organization_id = parseInt(dataToSubmit.organization_id, 10);
     } else {
-      addRecord('hostels', formData);
+      delete dataToSubmit.organization_id;
+    }
+    if (editingId) {
+      updateRecord('hostels', { ...dataToSubmit, id: editingId });
+    } else {
+      addRecord('hostels', dataToSubmit);
     }
     setIsModalOpen(false);
     setEditingId(null);
-    setFormData({ hostel_name: '', hostel_code: '', location_id: '', manager_id: '', status: 'T', photo_url: '' });
+    setFormData({ hostel_name: '', hostel_code: '', location_id: '', manager_id: '', status: 'T', photo_url: '', organization_id: '' });
   };
 
   const handleEdit = (hostel) => {
@@ -50,7 +56,8 @@ export const Hostels = () => {
       location_id: hostel.location_id || '', 
       manager_id: hostel.manager_id || '',
       status: hostel.status || 'T', 
-      photo_url: hostel.photo_url || '' 
+      photo_url: hostel.photo_url || '',
+      organization_id: hostel.organization_id || ''
     });
     setEditingId(hostel.id);
     setIsModalOpen(true);
@@ -64,7 +71,7 @@ export const Hostels = () => {
 
   const openAddModal = () => {
     setEditingId(null);
-    setFormData({ hostel_name: '', hostel_code: '', location_id: '', manager_id: '', status: 'T', photo_url: '' });
+    setFormData({ hostel_name: '', hostel_code: '', location_id: '', manager_id: '', status: 'T', photo_url: '', organization_id: '' });
     setIsModalOpen(true);
   };
 
@@ -110,13 +117,14 @@ export const Hostels = () => {
             const totalBeds = hostelBeds.length;
             const occupiedBeds = hostelBeds.filter(b => b.status === 'Occupied').length;
             const occupancyPercentage = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
+            const org = organizations.find(o => o.id === hostel.organization_id);
 
             return (
               <div key={hostel.id} className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
                 <div style={{ 
-                  height: '140px', 
-                  background: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.7)), url(${hostel.photo_url || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&q=80'}) center/cover`, 
-                  position: 'relative' 
+                   height: '140px', 
+                   background: `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.7)), url(${hostel.photo_url || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=600&q=80'}) center/cover`, 
+                   position: 'relative' 
                 }}>
                   <div style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: '16px', fontSize: '12px', fontWeight: 600, color: 'var(--primary-color)' }}>
                     Active
@@ -124,7 +132,12 @@ export const Hostels = () => {
                 </div>
                 <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
                   <div>
-                    <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>{hostel.hostel_name}</h3>
+                    <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>{hostel.hostel_name}</h3>
+                    {userRole === 'superAdmin' && (
+                      <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary-color)', marginBottom: '8px' }}>
+                        {org ? org.name : 'Unassigned'}
+                      </div>
+                    )}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '13px' }}>
                       <MapPin size={14} /> Location ID: {hostel.location_id || 'N/A'}
                     </div>
@@ -184,6 +197,15 @@ export const Hostels = () => {
                   <label className="form-label">Hostel Code</label>
                   <input type="text" className="form-control" required value={formData.hostel_code} onChange={(e) => setFormData({...formData, hostel_code: e.target.value})} placeholder="Enter hostel code" />
                 </div>
+                {userRole === 'superAdmin' && (
+                  <div className="form-group">
+                    <label className="form-label">Organization</label>
+                    <select className="form-control" required value={formData.organization_id} onChange={(e) => setFormData({...formData, organization_id: e.target.value})}>
+                      <option value="">Select Organization</option>
+                      {(organizations || []).map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+                    </select>
+                  </div>
+                )}
                 <div className="form-group">
                   <label className="form-label">Location ID</label>
                   <input type="number" className="form-control" required value={formData.location_id} onChange={(e) => setFormData({...formData, location_id: e.target.value})} placeholder="Enter location ID" />
