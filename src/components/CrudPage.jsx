@@ -193,7 +193,7 @@ export const CrudPage = ({ entityType, title, columns }) => {
                         name={col.key} 
                         value={formData[col.key] || ''} 
                         onChange={handleChange}
-                        required={col.required !== false}
+                        required={typeof col.required === 'function' ? col.required(formData) : col.required !== false}
                       >
                         <option value="">Select {col.label}</option>
                         {(typeof col.options === 'function' ? col.options(formData) : col.options)?.map(opt => (
@@ -220,7 +220,7 @@ export const CrudPage = ({ entityType, title, columns }) => {
                         value={formData[col.key] || ''} 
                         onChange={handleChange}
                         placeholder={`Enter ${col.label.toLowerCase()}`}
-                        required={col.required !== false}
+                        required={typeof col.required === 'function' ? col.required(formData) : col.required !== false}
                       />
                     )}
                   </div>

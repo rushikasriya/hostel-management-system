@@ -71,7 +71,11 @@ function App() {
       options: (organizations || []).map(o => ({ label: o.name, value: o.id })),
       render: (val) => organizations.find(o => o.id === val)?.name || 'Chetana Hostels',
       hideInForm: userRole !== 'superAdmin',
-      hideInTable: userRole !== 'superAdmin'
+      hideInTable: userRole !== 'superAdmin',
+      required: (formData) => {
+        const role = roles?.find(r => r.id === Number(formData?.role_id));
+        return role && role.role_name !== 'superAdmin';
+      }
     },
     { key: 'user_name', label: 'User Name' },
     { key: 'email_id', label: 'Email', type: 'email' },
